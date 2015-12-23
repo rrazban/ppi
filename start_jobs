@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 $exe="./lma";
-print `cd Hub_code; ./compile.sh; cd ..;`;
+#print `cd Hub_code; ./compile.sh; cd ..;`;
 
 $cpuminutes=(60*23)+59;
 $cpucentiseconds=($cpuminutes-15)*100*60;
