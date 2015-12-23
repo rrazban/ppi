@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+
+$exe="./lma";
+print `cd Hub_code; ./compile.sh; cd ..;`;
+
+$cpuminutes=(60*23)+59;
+$cpucentiseconds=($cpuminutes-15)*100*60;
+
+# internal lattice model parameters:
+$chapsx = 0.1;
+$state3rd =0;
+$ach = 0;
+$afs = 0;
+$age = 1;
+$af = 1; #0-kill cells who change fold
+$maxsteps = 6000000;
+
+
+# hub related parameters description:
+# singlish: 0-multi hub system; 1-singlish hub system
+# genes - how many proteins in each cell
+# hubID - takes values between 0..genes-1, and defines the hub protein
+# sequenceversion - combination of different initial sequences
+# version - each version starts from a different random generator seed
+
+foreach $singlish(0){
+    foreach $hubID (0){
+        foreach $genes (2){
+            foreach $sequenceversion (1){
+                foreach $version (1){
+                    
+                    $workdir = "hub.ach$ach.chapsx$chapsx.singlish$singlish.3rds$state3rd.af$af.age$age.afs$afs.genes$genes.hubID$hubID.seqv$sequenceversion.v$version";
+                    if (-d "$workdir") { print "dir $workdir exists. invoking restart.\n";} else { print `mkdir $workdir`; };
+                    
+                    # copy exe
+                    print `cp $exe $workdir`;
+                    
+                    # excute exe
+                    print `cd $workdir; $exe $workdir $version $maxsteps $genes $hubID $af $age $afs $cpucentiseconds $ach $chapsx $singlish $state3rd $sequenceversion`;
+                    
+                }
+            }
+        }
+    }
+}
+
