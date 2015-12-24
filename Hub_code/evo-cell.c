@@ -1651,12 +1651,25 @@ void PrintOutput(){
         for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %E", mean.C[ii]);
         for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out1, " %E", mean.F[ii]);
         for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %.10E", mean.pnat[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out6, " %E", mean.pint[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out6, " %E", mean.Gij[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %E", mean.pint[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %E", mean.Gij[ii]);
         
         
         for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %06d", myOrgDB[sizeRank[0]].structid[ii]);
         for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %03d", myOrgDB[sizeRank[0]].bmode[ii]);
+        
+        
+        int aaseq_surface_hub[AASURFACELEN], aaseq_surface_partner[AASURFACELEN], s_i, hub_i, par_i;
+        
+        for (ii=0;ii<curr_MAXPPIS; ii++){
+            hub_i=0; par_i=ii+1;
+            GetSurfaceAAPositions(myOrgDB[sizeRank[0]].structid[hub_i], myOrgDB[sizeRank[0]].structid[par_i], myOrgDB[sizeRank[0]].bmode[ii],
+                                  aaseq_surface_hub, aaseq_surface_partner);
+            
+            for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out1, " %02d", aaseq_surface_hub[s_i]);
+            for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out1, " %02d", aaseq_surface_partner[s_i]);
+            
+        }
         
         
         PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);

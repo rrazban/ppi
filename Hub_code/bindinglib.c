@@ -133,6 +133,7 @@ double GetBindingP2(int *seq1, int struct1, int *seq2, int struct2, int bmode, d
   return exp(-emin/T)/z;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 
 void GetDoubleSurfaceAA(int *seq1, int struct1, int *seq2, int struct2, int bmode, int *surface1, int *surface2){
     int face1, face2, rotate;
@@ -144,6 +145,25 @@ void GetDoubleSurfaceAA(int *seq1, int struct1, int *seq2, int struct2, int bmod
     for(k=0; k<9; k++) surfacetmp[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
     MirrorWall(surface1, surfacetmp);
     for(k=0; k<9; k++) surface2[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// rigid docking!
+void GetSurfaceAAPositions(int struct1, int struct2, int bmode, int *surface1, int *surface2)
+{
+    int face1, face2, rotate;
+    int k, surfacetmp[9];
+
+    
+    rotate=bmode%4;
+    face1=bmode/24;
+    face2=(bmode%24)/4;
+    for(k=0; k<9; k++) surfacetmp[k] = (int) AllFaces[24*struct1+4*face1+0][k];
+    MirrorWall(surface1, surfacetmp);
+    for(k=0; k<9; k++) surface2[k] = (int) AllFaces[24*struct2+4*face2+rotate][k];
 }
 
 

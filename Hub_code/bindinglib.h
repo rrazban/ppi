@@ -64,6 +64,8 @@ double GetBindingEnergyCharge(int *seq1, int struct1, int *seq2, int struct2, in
 
 double GetBindingEnergy2(int *seq1, int struct1, int *seq2, int struct2, int bmode);
 
+void GetSurfaceAAPositions(int struct1, int struct2, int bmode, int *surface1, int *surface2);
+
 void UpdateSurfaceAAProps(int *seq, int structid, int bmode);
 void GetSurfaceAA(int *aaseq_hub, int *aaseq_partner, int *aaseq_surface_hub, int *aaseq_surface_partner, int struct_hub, int struct_partner, int bmode);
 void GetSingleSurfaceAA(int *aaseq_surface, int *aaseq_full, int struct_id, int face_id,int bmode, int mirror, int rotate);
