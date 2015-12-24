@@ -67,7 +67,7 @@
 #define BEST_FACE 0
 // for singlish interaction. set to a negative number to let code find best face
 
-#define RANDOME_MODE 1
+#define RANDOME_MODE 0
 // 0 - non random (best)
 // 1 - random
 
