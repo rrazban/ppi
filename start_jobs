@@ -14,7 +14,7 @@ $afs = 0;
 $age = 1;
 $af = 1; #0-kill cells who change fold
 $maxsteps = 6000000;
-
+$solo = 0; #0-proteins not selected for ppi
 
 # hub related parameters description:
 # singlish: 0-multi hub system; 1-singlish hub system
@@ -29,7 +29,7 @@ foreach $singlish(0){
             foreach $sequenceversion (1){
                 foreach $version (1){
                     
-                    $workdir = "hub.ach$ach.chapsx$chapsx.singlish$singlish.3rds$state3rd.af$af.age$age.afs$afs.genes$genes.hubID$hubID.seqv$sequenceversion.v$version";
+                    $workdir = "seqv$sequenceversion.solo$solo.v$version";
                     if (-d "$workdir") { print "dir $workdir exists. invoking restart.\n";} else { print `mkdir $workdir`; };
                     
                     # copy exe
