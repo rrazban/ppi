@@ -36,7 +36,7 @@ foreach $singlish(0){
                     print `cp $exe $workdir`;
                     
                     # excute exe
-                    print `cd $workdir; $exe $workdir $version $maxsteps $genes $hubID $af $age $afs $cpucentiseconds $ach $chapsx $singlish $state3rd $sequenceversion`;
+                    print `cd $workdir; $exe $workdir $version $maxsteps $genes $hubID $af $age $afs $cpucentiseconds $ach $chapsx $singlish $state3rd $solo $sequenceversion`;
                     
                 }
             }

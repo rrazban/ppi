@@ -49,6 +49,7 @@ int singlish;
 double state_3rd;
 int POST_Proc;
 int sequenceversion;
+int solo;
 
 //int DumpProteome(char *filename); //un-used
 //int RecountOrgDB(int divisioncycle); //un-used

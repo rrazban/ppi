@@ -46,6 +46,7 @@ extern float chaps_x;
 extern int singlish;
 extern double state_3rd;
 extern int sequenceversion;
+extern int solo;
 
 extern double TIME;
 
@@ -93,8 +94,8 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     char rootdir[200], file[200];
     
-    if (argc != 15) {
-        fprintf(stderr, "Usage ./lma targetname seed maxdivcycle curr_MAXGENES hub_ID allow_fold_change allow_gene_exp allow_unfolded_states runTime allow_chaps chaps_x singlish state_3rd sequenceversion\n");
+    if (argc != 16) {
+        fprintf(stderr, "Usage ./lma targetname seed maxdivcycle curr_MAXGENES hub_ID allow_fold_change allow_gene_exp allow_unfolded_states runTime allow_chaps chaps_x singlish state_3rd solo sequenceversion\n");
         exit(-1);
     }
     
@@ -113,7 +114,8 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     sscanf(argv[11], "%f", &(chaps_x));
     sscanf(argv[12], "%d", &(singlish));
     sscanf(argv[13], "%lf", &(state_3rd));
-    sscanf(argv[14], "%d", &(sequenceversion));
+    sscanf(argv[14], "%d", &(solo));
+    sscanf(argv[15], "%d", &(sequenceversion));
     //}
     
     if (hub_ID==10){
@@ -134,6 +136,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     printf("singlish=%d\n", singlish);
     printf("state_3rd=%f\n", state_3rd);
     printf("runTime=%d\n", runTime);
+    printf("solo=%d\n", solo);
     printf("sequenceversion=%d\n", sequenceversion);
     printf("\n");
     
@@ -1104,7 +1107,12 @@ int UpdateBirthrateStoch(parameter *myParam, int who, int func){
     
     for(k=0;k<myOrg[who].ppicount;k++) {
         i=myOrg[who].ppi_pair[k][0], j=myOrg[who].ppi_pair[k][1];
-        myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
+		if (solo==0){
+	    	myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
+		}
+    	else{
+	    	myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
+		}
     }
     
     
@@ -1920,7 +1928,9 @@ int UpdateEquilibriumConstant(parameter *myParam, int who, int func){
         if (allow_unfolded_states==1){
             myOrg[who].Gij[k] = myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k];
         }
-
+		else if (solo==0){
+	    	myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
+		}
         else{
             myOrg[who].Gij[k] = myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
         }
