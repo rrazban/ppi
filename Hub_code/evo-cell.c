@@ -189,9 +189,9 @@ int main(int argc, char *argv[]){
     for (divisioncycle=start_divisioncycle; divisioncycle <= myParam.maxdivcycle; divisioncycle++) {
         if (end_clock() < runTime){
             
-            if (divisioncycle>1000) myParam.printoutcycle = 250;
-            if (divisioncycle>10000) myParam.printoutcycle = 500;
-            if (divisioncycle>1000000) myParam.printoutcycle = 1000;
+      //      if (divisioncycle>1000) myParam.printoutcycle = 250;
+    //        if (divisioncycle>10000) myParam.printoutcycle = 500;
+  //          if (divisioncycle>1000000) myParam.printoutcycle = 1000;
             
             //divisioncycle=1;while (end_clock() < runTime && divisioncycle <= myParam.maxdivcycle){
             switch (ALGORITHM) {

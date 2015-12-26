@@ -181,14 +181,14 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         myParam->decimthresh = 5000;
         myParam->decimto = 5000;
         myParam->dumpcycle = 100; //myParam->maxdivcycle/5; //mod myOrgDBMut
-        //    myParam->printoutcycle = 50;
+        myParam->printoutcycle = 50;
 //        myParam->printoutcycle = 25; //myParam->maxdivcycle / 200;
 //        if (myParam->printoutcycle == 0) myParam->printoutcycle = 1;
 //        myParam->seqlogcycle = 25; //myParam->maxdivcycle / 2000;
         
-        myParam->printoutcycle = 1000; //myParam->maxdivcycle / 200;
-        myParam->seqlogcycle = 1000; //myParam->maxdivcycle / 2000;
-        
+    //    myParam->printoutcycle = 1000; //myParam->maxdivcycle / 200;
+//        myParam->seqlogcycle = 1000; //myParam->maxdivcycle / 2000;
+        myParam->seqlogcycle = 50; //myParam->maxdivcycle / 2000;
         
         if (myParam->seqlogcycle == 0) myParam->seqlogcycle = 1;
         //    myParam->plotoutcycle = myParam->maxdivcycle / 2000;
