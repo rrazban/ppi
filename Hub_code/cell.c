@@ -164,10 +164,8 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     
     /* Parameters for Organisms */
-    
     if (RUN_BASED_ON_CONFIG==0){
         myParam->expressrate = 0.01;
-        //myParam->alpha = 100.0;
         myParam->alpha = 500.0;
         
         /* Parameters for Simulation */
@@ -213,15 +211,15 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     }
     
     sprintf(rootdir,"%s",".");
-    sprintf(file, "%s/../commondata/contact10000.dat", rootdir);
+    sprintf(file, "%s/commondata/contact10000.dat", rootdir);
     ReadContactMatrix(file);
-    sprintf(file, "%s/../commondata/allfaces10000.dat", rootdir);
+    sprintf(file, "%s/commondata/allfaces10000.dat", rootdir);
     ReadAllSurfaces(file);
-    sprintf(file, "%s/../commondata/MJ96_energy.dat", rootdir);
+    sprintf(file, "%s/commondata/MJ96_energy.dat", rootdir);
     ReadEnergyMatrix(file);
     
     
-    sprintf(file, "%s/../commondata/MJ96_hydrophobicity.dat", rootdir);
+    sprintf(file, "%s/commondata/MJ96_hydrophobicity.dat", rootdir);
     fp1 = fopen(file,"r");
     fprintf(stdout,"Read Hydrophobicity Data...\n");
     while (!feof(fp1)){
@@ -230,7 +228,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         Hydrophobicity[in_tmp1] = (double) tmp1;
     }
     
-    sprintf(file, "%s/../commondata/MJ96_hydrophobicityYesNo.dat", rootdir);
+    sprintf(file, "%s/commondata/MJ96_hydrophobicityYesNo.dat", rootdir);
     fp1 = fopen(file,"r");
     fprintf(stdout,"Read Hydrophobicity YES NO Data...\n");
     while (!feof(fp1)){
@@ -239,7 +237,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         HydrophobicityYesNo[in_tmp1] = (double) tmp1;
     }
     
-    sprintf(file, "%s/../commondata/MJ96_hydrophobicityYesNo_avil.dat", rootdir);
+    sprintf(file, "%s/commondata/MJ96_hydrophobicityYesNo_avil.dat", rootdir);
     fp1 = fopen(file,"r");
     fprintf(stdout,"Read Hydrophobicity avil YES NO Data...\n");
     while (!feof(fp1)){
@@ -249,7 +247,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     }
     
     
-    sprintf(file, "%s/../commondata/MJ96_charge.dat", rootdir);
+    sprintf(file, "%s/commondata/MJ96_charge.dat", rootdir);
     fp1 = fopen(file,"r");
     fprintf(stdout,"Read Charge Data...\n");
     while (!feof(fp1)){
@@ -263,7 +261,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     /* read initial gene sequence, Need to correct*/
     if (RUN_BASED_ON_CONFIG==0){
         fprintf(stderr, "Reading initial sequence...\n");
-        sprintf(file, "%s/../commondata/init_SEQ_pair_v%d.seq", rootdir,sequenceversion);
+        sprintf(file, "%s/commondata/init_SEQ_pair_v%d.seq", rootdir,sequenceversion);
         if ((fp1=fopen(file,"r")) == NULL) { fprintf(stderr, "Can't open %s file\n", file); exit(-1);}
         ii = 0;
         
@@ -606,208 +604,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     return;
 }
 
-
-
-///***********************************************************************************************************
-// **********************************************************************************************************/
-//int IterativeSolver_cha(int who){
-//    int i,j,k;
-//    double tmp,sum,eps,new_U,new_Ch;
-//
-//    for(i=0;i<curr_MAXGENES;i++){
-//
-//        x[i]=myOrg[who].C[i]*myOrg[who].pnat[i]; // folded
-//        x[i+curr_MAXGENES]=myOrg[who].C[i]*(1.- myOrg[who].pnat[i]); // unfolded
-//
-//        Kfold[i]=myOrg[who].pnat[i]/(1.-myOrg[who].pnat[i]);
-//
-//        KCh[i]=0.1*Kfold[i];
-//    }
-//    x[2*curr_MAXGENES]=myOrg[who].C[curr_MAXGENES]; //  chaperone
-//
-//    k=0;
-//    do {
-//
-//        for(i=0;i<curr_MAXSTATES;i++){ xold[i]=x[i]; }
-//
-//        eps=0.0e0;
-//        for(i=0;i<curr_MAXGENES;i++){
-//
-//            x[i]=Kfold[i]*x[i+curr_MAXGENES]+KCh[i]*myOrg[who].K[i+curr_MAXGENES][2*curr_MAXGENES]*x[i+curr_MAXGENES]*x[2*curr_MAXGENES];
-//
-//            sum = x[i] + x[i+curr_MAXGENES] - myOrg[who].K[i][i+curr_MAXGENES]*x[i]*x[i+curr_MAXGENES]
-//            + myOrg[who].K[i+curr_MAXGENES][2*curr_MAXGENES]*x[i+curr_MAXGENES]*x[2*curr_MAXGENES]; // Fi + Ui - FiUi + UiCh
-//
-//            for(j=0;j<curr_MAXGENES;j++){
-//                sum += myOrg[who].K[i][j]*x[i]*x[j] // FiFi
-//                + myOrg[who].K[i][j+curr_MAXGENES]*x[i]*x[j+curr_MAXGENES] // FiUi
-//                + myOrg[who].K[i+curr_MAXGENES][j]*x[i+curr_MAXGENES]*x[j] // UiFi
-//                + myOrg[who].K[i+curr_MAXGENES][j+curr_MAXGENES]*x[i+curr_MAXGENES]*x[j+curr_MAXGENES]; //UiUi
-//            }
-//
-//            new_U=(myOrg[who].C[i]*x[i+curr_MAXGENES])/sum;
-//            x[i+curr_MAXGENES]=new_U;
-//
-//            tmp=xold[i]-x[i]+xold[i+curr_MAXGENES]-x[i+curr_MAXGENES];
-//            eps += tmp*tmp;
-//        }
-//
-//        // with chaperone
-//
-//        sum=x[2*curr_MAXGENES]; //Ch
-//        for(i=0;i<curr_MAXGENES;i++){
-//            sum += myOrg[who].K[i+curr_MAXGENES][2*curr_MAXGENES]*x[i+curr_MAXGENES]*x[2*curr_MAXGENES]; // (UiCh)
-//        }
-//        new_Ch=(myOrg[who].C[curr_MAXGENES]*x[2*curr_MAXGENES])/sum;
-//        x[2*curr_MAXGENES]=new_Ch;
-//
-//        tmp=xold[2*curr_MAXGENES]-x[2*curr_MAXGENES];
-//        eps += tmp*tmp;
-//
-//        k++;
-//
-//    }while(k<=5000 && eps > 10e-15);
-//
-//
-//    for (i=0;i<curr_MAXGENES;i++){
-//
-//        sum = x[i] + x[i+curr_MAXGENES] - myOrg[who].K[i][i+curr_MAXGENES]*x[i]*x[i+curr_MAXGENES]
-//        + myOrg[who].K[i+curr_MAXGENES][2*curr_MAXGENES]*x[i+curr_MAXGENES]*x[2*curr_MAXGENES]; // Fi + Ui - FiUi + UiCh
-//
-//        for(j=0;j<curr_MAXGENES;j++){
-//            sum += myOrg[who].K[i][j]*x[i]*x[j] // FiFi
-//            + myOrg[who].K[i][j+curr_MAXGENES]*x[i]*x[j+curr_MAXGENES] // FiUi
-//            + myOrg[who].K[i+curr_MAXGENES][j]*x[i+curr_MAXGENES]*x[j] // UiFi
-//            + myOrg[who].K[i+curr_MAXGENES][j+curr_MAXGENES]*x[i+curr_MAXGENES]*x[j+curr_MAXGENES]; //UiUi
-//        }
-//
-//        tmp=myOrg[who].C[i]-sum;
-//        eps += tmp*tmp;
-//
-//    }
-//
-//    sum=x[2*curr_MAXGENES]; //Ch
-//    for(i=0;i<curr_MAXGENES;i++){
-//        sum += myOrg[who].K[i+curr_MAXGENES][2*curr_MAXGENES]*x[i+curr_MAXGENES]*x[2*curr_MAXGENES]; // (UiCh)
-//    }
-//    tmp=myOrg[who].C[curr_MAXGENES]-sum;
-//    eps += tmp*tmp;
-//
-//
-//    if(k>=5000 || eps > 10e-6) {
-//        fprintf(stderr,"IterativeSolver : Solution not converged in %d iteration and eps=%f \n", k,eps);
-//        fprintf(stderr,"xold : %lf %lf %lf, x : %lf %lf %lf; eps : %lf\n" ,xold[0], xold[1], xold[2], x[0], x[1], x[2], eps);
-//        exit(-1);
-//    }
-//
-//    return 0;
-//}
-//
-//
-///***********************************************************************************************************
-// **********************************************************************************************************/
-//int IterativeSolver_original(int who)
-//{
-//    int i,j,k;
-//    double tmp,sum,eps,new_U,new_Ch;
-//
-//    for(i=0;i<MAXGENES;i++){
-//
-//        x[i]=myOrg[who].C[i]*myOrg[who].pnat[i]; // folded
-//        x[i+MAXGENES]=myOrg[who].C[i]*(1.- myOrg[who].pnat[i]); // unfolded
-//
-//        Kfold[i]=myOrg[who].pnat[i]/(1.-myOrg[who].pnat[i]);
-//
-//        KCh[i]=0.1*Kfold[i];
-//    }
-//    x[2*MAXGENES]=myOrg[who].C[MAXGENES]; //  chaperone
-//
-//    k=0;
-//    do {
-//
-//        for(i=0;i<MAXSTATES;i++){ xold[i]=x[i]; }
-//
-//        eps=0.0e0;
-//        for(i=0;i<MAXGENES;i++){
-//
-//            x[i]=Kfold[i]*x[i+MAXGENES]+KCh[i]*myOrg[who].K[i+MAXGENES][2*MAXGENES]*x[i+MAXGENES]*x[2*MAXGENES];
-//
-//            sum = x[i] + x[i+MAXGENES] - myOrg[who].K[i][i+MAXGENES]*x[i]*x[i+MAXGENES]
-//            + myOrg[who].K[i+MAXGENES][2*MAXGENES]*x[i+MAXGENES]*x[2*MAXGENES]; // Fi + Ui - FiUi + UiCh
-//
-//            for(j=0;j<MAXGENES;j++){
-//                sum += myOrg[who].K[i][j]*x[i]*x[j] // FiFi
-//                + myOrg[who].K[i][j+MAXGENES]*x[i]*x[j+MAXGENES] // FiUi
-//                + myOrg[who].K[i+MAXGENES][j]*x[i+MAXGENES]*x[j] // UiFi
-//                + myOrg[who].K[i+MAXGENES][j+MAXGENES]*x[i+MAXGENES]*x[j+MAXGENES]; //UiUi
-//            }
-//
-//            new_U=(myOrg[who].C[i]*x[i+MAXGENES])/sum;
-//            x[i+MAXGENES]=new_U;
-//
-//            tmp=xold[i]-x[i]+xold[i+MAXGENES]-x[i+MAXGENES];
-//            eps += tmp*tmp;
-//        }
-//
-//
-//        // with chaperone
-//
-//        sum=x[2*MAXGENES]; //Ch
-//        for(i=0;i<MAXGENES;i++){
-//            sum += myOrg[who].K[i+MAXGENES][2*MAXGENES]*x[i+MAXGENES]*x[2*MAXGENES]; // (UiCh)
-//        }
-//        new_Ch=(myOrg[who].C[MAXGENES]*x[2*MAXGENES])/sum;
-//        x[2*MAXGENES]=new_Ch;
-//
-//        tmp=xold[2*MAXGENES]-x[2*MAXGENES];
-//
-//        //eps += tmp*tmp;
-//
-//        k++;
-//
-//    }while(k<=5000 && eps > 10e-15); //-15
-//    printf("chap error %E\n", tmp);
-//    printf("prot error %E\n", eps);
-//
-//    for (i=0;i<MAXGENES;i++){
-//
-//        sum = x[i] + x[i+MAXGENES] - myOrg[who].K[i][i+MAXGENES]*x[i]*x[i+MAXGENES]
-//        + myOrg[who].K[i+MAXGENES][2*MAXGENES]*x[i+MAXGENES]*x[2*MAXGENES]; // Fi + Ui - FiUi + UiCh
-//
-//        for(j=0;j<MAXGENES;j++){
-//            sum += myOrg[who].K[i][j]*x[i]*x[j] // FiFi
-//            + myOrg[who].K[i][j+MAXGENES]*x[i]*x[j+MAXGENES] // FiUi
-//            + myOrg[who].K[i+MAXGENES][j]*x[i+MAXGENES]*x[j] // UiFi
-//            + myOrg[who].K[i+MAXGENES][j+MAXGENES]*x[i+MAXGENES]*x[j+MAXGENES]; //UiUi
-//        }
-//
-//        tmp=myOrg[who].C[i]-sum;
-//        eps += tmp*tmp;
-//
-//    }
-//
-//    sum=x[2*MAXGENES]; //Ch
-//    for(i=0;i<MAXGENES;i++){
-//        sum += myOrg[who].K[i+MAXGENES][2*MAXGENES]*x[i+MAXGENES]*x[2*MAXGENES]; // (UiCh)
-//    }
-//    tmp=myOrg[who].C[MAXGENES]-sum;
-//    eps += tmp*tmp;
-//
-//
-//    if(k>=5000 || eps > 10e-6) { //-6
-//        fprintf(stderr,"IterativeSolver : Solution not converged in %d iteration and eps=%f \n", k,eps);
-//        fprintf(stderr,"xold : %lf %lf %lf, x : %lf %lf %lf; eps : %lf\n" ,xold[0], xold[1], xold[2], x[0], x[1], x[2], eps);
-//        exit(-1);
-//    }
-//
-//    return 0;
-//}
-//
-//
-//
-//
-
-
 /***********************************************************************************************************
  **********************************************************************************************************/
 // solving the law of mass action, updates x to hold the current C.
@@ -816,8 +612,8 @@ int IterativeSolver(int who){
     double tmp, eps;
     double eps_array[MAXSTATES+1];
     int eps_flag;
-    int max_iterations = 30000;
-    //int max_iterations = 300000000;
+   // int max_iterations = 30000;
+    int max_iterations = 300000000;
     
     double max_error  = 10e-15;
     double max_error2 = 10e-3;
@@ -1550,34 +1346,6 @@ void PrintInitialCondition(FILE *out, parameter *myParam){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /***********************************************************************************************************
  **********************************************************************************************************/
 int UpdateMonomerConcentration(parameter *myParam, int who){
@@ -1669,143 +1437,6 @@ void UpdateNsi(parameter *myParam, int who){
         myOrg[who].si2[i] = 1.0 - myOrg[who].nsi2[i];
     }
 }
-
-
-
-///***********************************************************************************************************
-// **********************************************************************************************************/
-//int UpdateEquilibriumConstant_op(parameter *myParam, int who, int func)
-//{
-//    int ii,i,j,k,kk,UID,UID2;
-//    double sum,norm,C;
-//
-//    // Generate random conformations for unfolded ensemble
-//    for(i=0;i<MAXGENES;i++){
-//        for(j=0;j<NUFOLD;j++){
-//            do{
-//                do{ UID = (int)( ( (double) rand()/RAND_MAX ) * 1000 ); } while( UID==1000 );
-//                UID2 = UID + (int)( j*1000 );
-//            }while( UID2==myOrg[who].structid[i] );
-//            Ustructid[i][j] = UID2;
-//        }
-//    }
-//    //	do{ UID = (int)( ( (double) rand()/RAND_MAX ) * (NUMCONF/NUFOLD) ); } while( UID==(NUMCONF/NUFOLD) );
-//    //	UID2 = UID + (int)( j*(NUMCONF/NUFOLD) );
-//
-//    for(i=0;i<MAXGENES;i++){
-//        CharNucSeqToAASeq(myOrg[who].genome+i*NUCSEQLEN,NUCSEQLEN,aaseq);
-//
-//        // K_ii for Ui-Ui
-//        sum=0.0e0;
-//        for(k=0;k<NUFOLD;k++){
-//            UID=Ustructid[i][k];
-//            for(kk=k;kk<NUFOLD;kk++){
-//                UID2=Ustructid[i][kk];
-//                sum += GetBindingK(aaseq,UID,aaseq,UID2,myParam->Tenv);
-//            }
-//        }
-//        norm=2.0/(NUFOLD*(NUFOLD+1.0));
-//        myOrg[who].K[i+MAXGENES][i+MAXGENES] = sum*norm;
-//
-//        // K_ij for Fi-Ch
-//        //    myOrg[who].K[i][2*MAXGENES]=myOrg[who].K[2*MAXGENES][i]=GetBindingCh(aaseq,myOrg[who].structid[i],myParam->Tenv);
-//
-//        // K_ij for Ui-Ch
-//        sum=0.0e0;
-//        for(k=0;k<NUFOLD;k++){
-//            UID=Ustructid[i][k];
-//            sum += GetBindingCh(aaseq,UID,myParam->Tenv);
-//        }
-//        norm=1.0e0/NUFOLD;
-//        myOrg[who].K[i+MAXGENES][2*MAXGENES]=myOrg[who].K[2*MAXGENES][i+MAXGENES]= sum*norm;
-//
-//        for(j=i;j<MAXGENES;j++){
-//            CharNucSeqToAASeq(myOrg[who].genome+j*NUCSEQLEN,NUCSEQLEN,aaseq2);
-//
-//            // K_ij for Fi-Fj
-//            myOrg[who].K[i][j]=myOrg[who].K[j][i] = GetBindingK(aaseq,myOrg[who].structid[i],aaseq2,myOrg[who].structid[j],myParam->Tenv);
-//
-//            // K_ij for Fi-Uj
-//            sum=0.0e0;
-//            for(k=0;k<NUFOLD;k++){
-//                UID=Ustructid[j][k];
-//                sum += GetBindingK(aaseq,myOrg[who].structid[i],aaseq2,UID,myParam->Tenv);
-//            }
-//            norm=1.0e0/NUFOLD;
-//            myOrg[who].K[i][j+MAXGENES]=myOrg[who].K[j+MAXGENES][i]= sum*norm;
-//
-//            // K_ij for Ui-Uj and i not equal to j
-//
-//            if (i == j){ continue; }
-//
-//            sum=0.0e0;
-//            for(k=0;k<NUFOLD;k++){
-//                UID=Ustructid[i][k];
-//                for(kk=0;kk<NUFOLD;kk++){
-//                    UID2=Ustructid[j][kk];
-//                    sum += GetBindingK(aaseq,UID,aaseq2,UID2,myParam->Tenv);
-//                }
-//            }
-//            norm=1.0/(NUFOLD*NUFOLD);
-//            myOrg[who].K[i+MAXGENES][j+MAXGENES]=myOrg[who].K[j+MAXGENES][i+MAXGENES]= sum*norm;
-//
-//        }
-//    }
-//
-//    UpdateMonomerConcentration(myParam, who);
-//
-//    for(k=0;k<MAXPPIS;k++){
-//
-//        i=myOrg[who].ppi_pair[k][0], j=myOrg[who].ppi_pair[k][1];
-//        CharNucSeqToAASeq(myOrg[who].genome+i*NUCSEQLEN,NUCSEQLEN,aaseq);
-//        CharNucSeqToAASeq(myOrg[who].genome+j*NUCSEQLEN,NUCSEQLEN,aaseq2);
-//
-//        myOrg[who].pint[k] = GetBindingP2(aaseq, myOrg[who].structid[i], aaseq2, myOrg[who].structid[j], myOrg[who].bmode[k], myParam->Tenv);
-//        myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k];
-//    }
-//
-//
-//
-//    myOrg[who].birthrate = myParam->b0; //10E37;
-//    for (ii=0; ii<myOrg[who].ppicount; ii++) {
-//        myOrg[who].birthrate *=myOrg[who].Gij[ii];
-//    }
-//    C=0.0e0;
-//    for(i=0;i<myOrg[who].genecount;i++) C+=myOrg[who].C[i];
-//    myOrg[who].birthrate/=(1.0e0+myParam->alpha*(C-((curr_MAXGENES+1)*0.1))*(C-((curr_MAXGENES+1)*0.1)));
-//
-//
-//    //  PPI(0) StrID[1] and StrID[2]
-//    //  PPI(1) StrID[3] and StrID[4]
-//    //  PPI(2) StrID[4] and StrID[5]
-//    //  PPI(3) StrID[5] and StrID[3]
-//
-////    // non-functional interactions
-////    myOrg[who].NF[0]=myOrg[who].C[0]-myOrg[who].F[0]-myOrg[who].F[0+MAXGENES];
-////    myOrg[who].NF[1]=myOrg[who].C[1]-myOrg[who].F[1]-myOrg[who].F[1+MAXGENES]-myOrg[who].Gij[0];
-////    myOrg[who].NF[2]=myOrg[who].C[2]-myOrg[who].F[2]-myOrg[who].F[2+MAXGENES]-myOrg[who].Gij[0];
-////    myOrg[who].NF[3]=myOrg[who].C[3]-myOrg[who].F[3]-myOrg[who].F[3+MAXGENES]-myOrg[who].Gij[1]-myOrg[who].Gij[3];
-////    myOrg[who].NF[4]=myOrg[who].C[4]-myOrg[who].F[4]-myOrg[who].F[4+MAXGENES]-myOrg[who].Gij[1]-myOrg[who].Gij[2];
-////    myOrg[who].NF[5]=myOrg[who].C[5]-myOrg[who].F[5]-myOrg[who].F[5+MAXGENES]-myOrg[who].Gij[2]-myOrg[who].Gij[3];
-////
-////    // every unfolded protein is also in a complex with chaperone
-////    for(i=0;i<MAXGENES;i++){
-////        myOrg[who].NF[i] -= myOrg[who].F[i+MAXGENES]*myOrg[who].F[2*MAXGENES]*myOrg[who].K[i+MAXGENES][2*MAXGENES];
-////        myOrg[who].NCh[i] = myOrg[who].F[i+MAXGENES]*myOrg[who].F[2*MAXGENES]*myOrg[who].K[i+MAXGENES][2*MAXGENES];
-////    }
-////
-//    for(i=0;i<MAXGENES;i++){
-//        myOrg[who].Kc[i] = KCh[i]*myOrg[who].K[i+MAXGENES][2*MAXGENES]*myOrg[who].F[2*MAXGENES];
-//    }
-//
-//
-//    return 0;
-//
-//}
-//
-//
-//
-//
 
 
 /***********************************************************************************************************
@@ -2000,7 +1631,3 @@ void GetSequenceID(int who)
         }
     }
 }
-
-
-
-
