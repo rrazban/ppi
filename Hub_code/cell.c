@@ -47,6 +47,7 @@ extern int singlish;
 extern double state_3rd;
 extern int sequenceversion;
 extern int solo;
+extern int homo;
 
 extern double TIME;
 
@@ -99,7 +100,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         exit(-1);
     }
     
-    //if (RUN_BASED_ON_CONFIG==0){
     sscanf(argv[1], "%s", myParam->targetname);
     sscanf(argv[2], "%d", &(myParam->seed));
     sscanf(argv[3], "%d", &(myParam->maxdivcycle));
@@ -116,8 +116,9 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     sscanf(argv[13], "%lf", &(state_3rd));
     sscanf(argv[14], "%d", &(solo));
     sscanf(argv[15], "%d", &(sequenceversion));
-    //}
-    
+   
+	homo=1;
+ 
     if (hub_ID==10){
         eff_hub_ID=0;
     }
@@ -180,12 +181,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         myParam->decimto = 5000;
         myParam->dumpcycle = 100; //myParam->maxdivcycle/5; //mod myOrgDBMut
         myParam->printoutcycle = 50;
-//        myParam->printoutcycle = 25; //myParam->maxdivcycle / 200;
-//        if (myParam->printoutcycle == 0) myParam->printoutcycle = 1;
-//        myParam->seqlogcycle = 25; //myParam->maxdivcycle / 2000;
-        
-    //    myParam->printoutcycle = 1000; //myParam->maxdivcycle / 200;
-//        myParam->seqlogcycle = 1000; //myParam->maxdivcycle / 2000;
         myParam->seqlogcycle = 50; //myParam->maxdivcycle / 2000;
         
         if (myParam->seqlogcycle == 0) myParam->seqlogcycle = 1;
@@ -965,7 +960,7 @@ int UpdateBirthrateStoch(parameter *myParam, int who, int func){
  */
 /***********************************************************************************************************
  **********************************************************************************************************/
-int UpdateMutLevel(parameter *myParam, int who, int func)
+int UpdateMutLevel(parameter *myParam, int who, int func)  //RR doesnt seem to ever be used
 {
     myOrg[who].mutrate = myParam->mutrate0*(myParam->x0-myOrg[who].Gij[4]);
     if(myOrg[who].mutrate < myParam->mutrate[0]) {
@@ -989,32 +984,6 @@ int UpdateMutLevel(parameter *myParam, int who, int func)
     
     return 0;
 }
-
-//int MutRate(parameter *myParam, int who, int compensate, double *dM){
-//    ncycle=1;
-//    r = compensate*myParam->mutchangerate;
-//    while(r>1.0){
-//        r/=2;
-//        ncycle*=2;
-//    }
-//
-//    //fprintf(stdout, "MUTRATE: Old birth rate : %lf, acceptance rate : %lf\n", GetBirthrate(myParam, who), r);
-//    for(cycle=0;cycle<ncycle;cycle++){
-//        if(((double) rand()/RAND_MAX) < r) {
-//            *dM=GaussianNum();
-//            myOrg[who].mutrate*=(1.0e0+*dM*myParam->gaussMult);
-//            //fprintf(stdout, "ACCEPTED... %lf %lf %lf, dC : %lf\n", myOrg[who].C[0], myOrg[who].C[1], myOrg[who].C[2], *dC );
-//        }
-//    }
-//    return 0;
-//}
-//
-
-
-
-
-
-
 
 /***********************************************************************************************************
  **********************************************************************************************************/
@@ -1063,9 +1032,15 @@ int GeneExpress(parameter *myParam, int who, int compensate, double *dC){
         /* Select 1 gene in a cell and change the expression level of the gene */
         if(((double) rand()/RAND_MAX) < r) {
             do { ii = (int) (((double)rand()/RAND_MAX)*myOrg[who].genecount); } while(ii == myOrg[who].genecount);
+            if (homo==1) {
+            	do { ii = (int) (((double)rand()/RAND_MAX)*(myOrg[who].genecount-1)); } while(ii == (myOrg[who].genecount-1));
+			}
             *dC=GaussianNum();
             myOrg[who].C[ii]*=(1.0e0+*dC);
-        }
+			if (homo==1) {
+            	myOrg[who].C[ii+1]*=(1.0e0+*dC);
+       		}
+		 }
     }
     
     UpdateBirthrateStoch(myParam, who, 1);
@@ -1078,7 +1053,7 @@ int OrgGeneMutate(parameter *myParam, int who, int compensate){
     int ii, jj, kk;
     int mutcount=0, nonsyn_mutcount=0;
     int StrID;
-    
+   	int genecount; 
     
     r=compensate*myOrg[who].mutrate;
     switch (ALGORITHM) {
@@ -1099,7 +1074,14 @@ int OrgGeneMutate(parameter *myParam, int who, int compensate){
     
     for(cycle=0;cycle<ncycle;cycle++){
         if(((double) rand()/RAND_MAX) < r) {
-            for(ii=0;ii<myOrg[who].genecount;ii++){
+			if (homo==1) {
+				genecount=myOrg[who].genecount-1;
+			}
+			else {
+				genecount=myOrg[who].genecount;
+			}
+
+            for(ii=0;ii<genecount;ii++){
                 //if(((double) rand()/RAND_MAX)<0.3) continue;
                 if(myOrg[who].genome[ii*NUCSEQLEN]==-1) {fprintf(stderr,"genome corruption at dup\n"); exit(1);}
                 do {
@@ -1108,16 +1090,14 @@ int OrgGeneMutate(parameter *myParam, int who, int compensate){
                     //printf("PointMutateCharNucSequence who=%d gene=%d\n", who,ii);
                 } while(jj==-1); //stop codon
                 memcpy(myOrg[who].genome+ii*NUCSEQLEN,temp,NUCSEQLEN);
-                
+                if (homo==1) {
+                memcpy(myOrg[who].genome+(ii+1)*NUCSEQLEN,temp,NUCSEQLEN);
+				}
                 if(jj==1) { //nonsynonymous
                     //printf("PointMutateCharNucSequence who=%d gene=%d NON SYNON\n", who,ii);
                     CharNucSeqToAASeq(myOrg[who].genome+ii*NUCSEQLEN, NUCSEQLEN, aaseq);
                     
                     if (allow_fold_change==1){ //muyoung
-                        //myOrg[who].pnat[ii] = (float) GetStructurePnat(aaseq,myParam->Tenv,myOrg[who].structid[ii]);
-                        //myOrg[who].pnat[ii] = (float) GetSequencePnat(aaseq,myParam->Tenv,&myOrg[who].structid[ii]);
-                        
-                        
                         // op sept 2015, allow fold change but don't change structure!
                         myOrg[who].pnat[ii] = (float) GetStructurePnat(aaseq,myParam->Tenv,myOrg[who].structid[ii]);
 
@@ -1134,8 +1114,11 @@ int OrgGeneMutate(parameter *myParam, int who, int compensate){
                         }
                     }
                     
+//disregard that homo case fails
                     myOrg[who].hydro[ii]=(float) GetHydrophobicity(aaseq, AASEQLEN);
                     myOrg[who].frachydro[ii] = (float)GetFracHydrophobicity(aaseq, AASEQLEN);
+
+
                     myOrg[who].frachydro_avil[ii] = (float)GetFracHydrophobicity_avil(aaseq, AASEQLEN);
                     myOrg[who].fraccharge[ii] = (float)GetFracCharge(aaseq, AASEQLEN);
                     myOrg[who].netcharge[ii] = (float)GetNetCharge(aaseq, AASEQLEN);
