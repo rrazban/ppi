@@ -33,12 +33,6 @@
 // !!! should be as big as POPSIZE:
 #define MAXORGANISMS    100
 
-
-//#define MAXGENES        7 
-//// maximum genes per organism
-//#define MAXPPIS			6 
-//// maximum interactions among genes
-
 #define MAXGENES        7
 // maximum genes per organism
 #define MAXPPIS			6
@@ -57,7 +51,6 @@
 //// number of unfolded conformations
 
 //#define MAXPRINTSPECIES  100  // maximum species for seqlog
-//#define POPSIZE         500
 #define POPSIZE         100
 
 #define ALGORITHM       1
