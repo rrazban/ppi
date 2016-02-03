@@ -165,7 +165,7 @@ int main(int argc, char *argv[]){
     }
     
     Openfiles();
-    if (RUN_BASED_ON_CONFIG==0){start_divisioncycle = 0;} else{start_divisioncycle=divisioncycle;}
+    if (RUN_BASED_ON_CONFIG==0){start_divisioncycle = 1;} else{start_divisioncycle=divisioncycle;}  //altered start_divisioncycle so that only one 00000 print out
     
     fprintf(stderr,"Start simulations...\n");
     
