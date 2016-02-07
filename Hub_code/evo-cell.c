@@ -165,7 +165,7 @@ int main(int argc, char *argv[]){
     }
     
     Openfiles();
-    if (RUN_BASED_ON_CONFIG==0){start_divisioncycle = 1;} else{start_divisioncycle=divisioncycle;}  //altered start_divisioncycle so that only one 00000 print out
+    if (RUN_BASED_ON_CONFIG==0){start_divisioncycle = 0;} else{start_divisioncycle=divisioncycle;}
     
     fprintf(stderr,"Start simulations...\n");
     
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]){
     
     // MAIN LOOP
     /***********************************************************************************************************/
-    for (divisioncycle=start_divisioncycle; divisioncycle <= myParam.maxdivcycle; divisioncycle++) {
+    for (divisioncycle=start_divisioncycle+1; divisioncycle <= myParam.maxdivcycle; divisioncycle++) {
         if (end_clock() < runTime){
             
       //      if (divisioncycle>1000) myParam.printoutcycle = 250;

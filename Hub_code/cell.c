@@ -117,7 +117,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     sscanf(argv[14], "%d", &(solo));
     sscanf(argv[15], "%d", &(sequenceversion));
    
-	homo=1;
+	homo=0;//hard coded, when =1 homodimer on
  
     if (hub_ID==10){
         eff_hub_ID=0;

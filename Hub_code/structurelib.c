@@ -283,8 +283,8 @@ void MakeContactMatrix()
 void ReadCommondata()
 {
 char rootdir[100], file[100];
-sprintf(rootdir,"%s","/n/home09/amygilson/lattice/");
-sprintf(file, "%s/commondata/coord103346.dat", rootdir);
+sprintf(rootdir,"%s","/n/home12/rrazban/ppi/codeOP");
+sprintf(file, "%s/commondata/coord10000.dat", rootdir);
 ReadCoordMatrix(file);
 MakeAllFaces();
 MakeContactMatrix();

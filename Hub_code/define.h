@@ -57,7 +57,7 @@
 // 0 muyoung's. synchronized devisions, flex pop size
 // 1 gillepsie (murat). fixed pop size
 
-#define BEST_FACE 0
+#define BEST_FACE 1
 // for singlish interaction. set to a negative number to let code find best face
 
 #define RANDOME_MODE 0
