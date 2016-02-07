@@ -21,7 +21,7 @@ double HydrophobicityYesNo_avil[ALPHABET];
 double Charge[ALPHABET];
 double espectrum[NUMCONF]; // used in Pnat calcultion
 
-extern double state_3rd;
+//extern double state_3rd;
 
 //extern FILE *globaloutfile;
 //extern double targetpnat;
@@ -358,9 +358,9 @@ double GetSequencePnat(int *Seq, double T, int *conform)
     
     z = 0.; for(i=0; i<NUMCONF; i++) z = z + exp(-espectrum[i]/T);
     
-    if (state_3rd>0.0){
-        z=z+state_3rd; //2.6e27
-    }
+//    if (state_3rd>0.0){
+  //      z=z+state_3rd; //2.6e27
+//    }
     
     p= exp(-emin/T)/z;
     //printf("P=%f\n", p);
