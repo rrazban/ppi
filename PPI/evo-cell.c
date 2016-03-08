@@ -139,7 +139,7 @@ int main(int argc, char *argv[]){
     int kk;
     int ii, jj, kia;
     int who, status;
-    int count1, count2, prev_orgcount, newborncount;
+    int count1, count2, newborncount;
     int fate, overflowflag;
     int deathcount, death2count, maxorgind;
     double dC;
@@ -197,7 +197,7 @@ int main(int argc, char *argv[]){
             //divisioncycle=1;while (end_clock() < runTime && divisioncycle <= myParam.maxdivcycle){
             switch (ALGORITHM) {
                 case 0: //Muyoung
-                    overflowflag = 0; count1=count2=0; prev_orgcount=orgcount;
+                    overflowflag = 0; count1=count2=0;
                     //if(divisioncycle == myParam.timeLow+1) myParam.birthrate /= 10;
                     for(who=0; who<MAXORGANISMS; who++) {
                         if (myOrgstatus[who]==S_DEAD) continue;

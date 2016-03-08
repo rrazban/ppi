@@ -604,32 +604,21 @@ int IterativeSolver(int who){
     double tmp, eps;
     double eps_array[MAXSTATES+1];
     int eps_flag;
-   // int max_iterations = 30000;
     int max_iterations = 300000000;
     
     double max_error  = 10e-15;
     double max_error2 = 10e-3;
     
-    //double max_error  = 10e-15;
-    
-    //double max_error  = 1;
-    
-    //double max_error2 = 1;
-    
     
     double sum,new_U,new_Ch;
     
-    //printf("allow_unfolded_states = %d\n\n\n", allow_unfolded_states);
-    
-    if (allow_unfolded_states==0 || allow_unfolded_states==2){
-        //printf("in if (allow_unfolded_states==0 || allow_unfolded_states==2)\n\n\n");
+    if (allow_unfolded_states==0 || allow_unfolded_states==2){		//RMR sims
         for(i=0;i<curr_MAXGENES;i++){
             x[i]=myOrg[who].C[i];
         }
         k=0;
         
         do {
-            // eps=0.0e0;
             for(i=0;i<curr_MAXGENES;i++) xold[i]=x[i];
             
             for(i=0;i<curr_MAXGENES;i++){
@@ -637,7 +626,6 @@ int IterativeSolver(int who){
                 for(j=0;j<curr_MAXGENES;j++) tmp+=xold[j]*myOrg[who].K[i][j];
                 x[i]=myOrg[who].C[i]/(1.0+tmp);
                 eps_array[i] = (xold[i]-x[i])*(xold[i]-x[i])/x[i];
-                //eps_array[i] = sqrt((xold[i]-x[i])*(xold[i]-x[i]))/sqrt(x[i]*x[i]);
             }
             k++;
             eps_flag = 0;
@@ -654,10 +642,8 @@ int IterativeSolver(int who){
         }
         eps_flag = 0;
         for(i=0;i<curr_MAXGENES;i++){
-            if(eps_array[i] > max_error2) eps_flag=1;
+            if(eps_array[i] > max_error2) eps_flag=1;		//what's the point of mas_error2? RMR
         }
-        
-        
     }
     
     else { //allow_unfolded_states==1
@@ -895,12 +881,7 @@ int UpdateBirthrateStoch(parameter *myParam, int who, int func){
     
     for(k=0;k<myOrg[who].ppicount;k++) {
         i=myOrg[who].ppi_pair[k][0], j=myOrg[who].ppi_pair[k][1];
-		if (solo==0){
-	    	myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
-		}
-    	else{
-	    	myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
-		}
+	    myOrg[who].Gij[k]=myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
     }
     
     
@@ -921,6 +902,9 @@ int UpdateBirthrateStoch(parameter *myParam, int who, int func){
                 myOrg[who].birthrate *=myOrg[who].F[ii]*myOrg[who].pnat[ii];
             }
         }
+		else if (solo==0){
+			myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[k]);
+		}
         else{
             myOrg[who].birthrate *=myOrg[who].Gij[ii];
         }
@@ -1331,8 +1315,6 @@ void PrintInitialCondition(FILE *out, parameter *myParam){
 int UpdateMonomerConcentration(parameter *myParam, int who){
     int i;
     IterativeSolver(who);
-    //IterativeSolver_cha(who); //murat code plus _curr
-    //IterativeSolver_original(who); //murat original code
     
     for(i=0;i<curr_MAXSTATES;i++){
         myOrg[who].F[i]=(float) x[i];
@@ -1351,7 +1333,7 @@ int UpdateMonomerConcentration(parameter *myParam, int who){
 //    for(i=0;i<MAXGENES;i++){
 //        myOrg[who].NF[i]=myOrg[who].C[i]-myOrg[who].F[i]-myOrg[who].F[i+MAXGENES];
 //    }
-//    for(i=0;i<MAXPPIS;i++){
+//    for(i=0;i<MAXPPIS;i++){						RMR- I dont think this is right because G comes from folded proteins
 //        myOrg[who].NF[0]-=myOrg[who].Gij[i];
 //    }
 //    for(i=1;i<MAXGENES;i++){
@@ -1539,9 +1521,6 @@ int UpdateEquilibriumConstant(parameter *myParam, int who, int func){
         if (allow_unfolded_states==1){
             myOrg[who].Gij[k] = myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k];
         }
-		else if (solo==0){
-	    	myOrg[who].Gij[k] = myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
-		}
         else{
             myOrg[who].Gij[k] = myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j]*myOrg[who].pint[k]*myOrg[who].pnat[i]*myOrg[who].pnat[j];
         }
@@ -1567,11 +1546,13 @@ int UpdateEquilibriumConstant(parameter *myParam, int who, int func){
                     myOrg[who].birthrate *=myOrg[who].F[ii]*myOrg[who].pnat[ii];
                 }
             }
-            else{
-                myOrg[who].birthrate *=myOrg[who].Gij[ii];
+           else if (solo==0){
+                myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[k]);
+            }
+	       else{
+                myOrg[who].birthrate *= myOrg[who].Gij[ii];
             }
         }
-        //myOrg[who].birthrate *=myOrg[who].Gij[ii];
     }
     if (hub_ID==10){
         myOrg[who].birthrate *=myOrg[who].F[ii]*myOrg[who].pnat[ii];
