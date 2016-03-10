@@ -1314,12 +1314,18 @@ void PrintInitialCondition(FILE *out, parameter *myParam){
  **********************************************************************************************************/
 int UpdateMonomerConcentration(parameter *myParam, int who){
     int i;
+	int j;
     IterativeSolver(who);
     
     for(i=0;i<curr_MAXSTATES;i++){
         myOrg[who].F[i]=(float) x[i];
     }
-    
+   
+    for(i=0;i<curr_MAXSTATES;i++){
+    	for(j=i;j<curr_MAXSTATES;j++){
+ 			myOrg[who].nF[i][j] = myOrg[who].F[i]*myOrg[who].F[j]*myOrg[who].K[i][j];
+ 		}
+	}
     if (allow_chaps){
         myOrg[who].F[2*curr_MAXGENES]=(float) x[2*curr_MAXGENES];
     }

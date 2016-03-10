@@ -432,13 +432,13 @@ double MutateAASeqForMaxPnat(int *aaseq, double Tenv, double Tsel)
     double  e0, e1, emax, r ;
     //FILE *outfile, *outfile2;
     //double tmean=0;
-    int struct1, struct2;
-    int changetime;
+//    int struct1, struct2;
+//    int changetime;
     
     emax = GetSequencePnat(aaseq, Tenv, &conform);
     e0 = emax;
-    struct1 = conform;
-    changetime = 0;
+//    struct1 = conform;
+//    changetime = 0;
     
     CopySeq(targetseq, aaseq, AASEQLEN); // targetseq is the eventual output
     CopySeq(aaseq2, aaseq, AASEQLEN);
@@ -449,7 +449,7 @@ double MutateAASeqForMaxPnat(int *aaseq, double Tenv, double Tsel)
         PointMutateAASequence(aaseq3, AASEQLEN);
         
         e1 = GetSequencePnat(aaseq3, Tenv, &conform );
-        struct2 = conform;
+//        struct2 = conform;
         
         //if (e1>targetpnat+0.05) break;
         

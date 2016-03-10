@@ -23,6 +23,7 @@ typedef struct ORGANISM{
     int SeqID[MAXGENES*(MAXGENES-1)/2];
     
     double C[MAXGENES+1], K[MAXSTATES+1][MAXSTATES+1], F[MAXSTATES+1];
+	double nF[MAXSTATES+1][MAXSTATES+1];
     double Kc[MAXGENES+1], Nch[MAXGENES+1];
     float pnat[MAXGENES], hydro[MAXGENES];
     float netcharge[MAXGENES], poscharge[MAXGENES],
