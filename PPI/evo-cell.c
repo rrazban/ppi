@@ -98,6 +98,7 @@ void PostProcessing();
 FILE *error_op;
 FILE *it_solver;
 FILE *out1, *out2, *out3, *out5, *out6, *out7, *out8, *out10, *out11, *finitvals, *out12, *out15, *out16, *out40, *out41;
+FILE *out22, *out23;
 FILE *out42,*out43,*out44,*out45;
 
 
@@ -1678,25 +1679,17 @@ void PrintOutput(){
         fprintf(out1, " %s ", seqbuf);
         fprintf(out1,"\n");
         
+        fprintf(out22,"%08d",divisioncycle);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %E", mean.C[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %E", mean.F[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out22, " %E", mean.nF[ii][jj]);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.10E", mean.pnat[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %E", mean.pint[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %E", mean.Gij[ii]);
+        fprintf(out22,"\n");
         
         
-        
-        
-//        for (ii=0;ii<curr_MAXPPIS; ii++){
-//            i=myOrgDB[sizeRank[0]].ppi_pair[ii][0], j=myOrgDB[sizeRank[0]].ppi_pair[ii][1];
-//            //printf("i=%d j=%d\n", i,j);
-//            CharNucSeqToAASeq(myOrgDB[sizeRank[0]].genome+i*NUCSEQLEN,NUCSEQLEN,aaseq_hub);
-//            CharNucSeqToAASeq(myOrgDB[sizeRank[0]].genome+j*NUCSEQLEN,NUCSEQLEN,aaseq_partner);
-//            
-//            GetSurfaceAA(aaseq_hub, aaseq_partner, aaseq_surface_hub, aaseq_surface_partner, myOrg[who].structid[i], myOrg[who].structid[j], myOrg[who].bmode[ii]);
-//            
-//        }
-        
-        //CharNucSeqToAASeq(seqbuf,NUCSEQLEN,aaseq);
-        
-        
-        //for (ii=0; ii<AASEQLEN; ii++) fprintf(out1, "%d", aaseq[ii]);
-        
+       
         
         
 
@@ -1778,7 +1771,13 @@ void Openfiles(){
     
     sprintf(fopbuf,"seqlog-%s.dat", myParam.targetname);
     out4=fopen(fopbuf,filetype_buf);
-    
+   
+    sprintf(fopbuf,"concNprob.avg.dat");
+    out22=fopen(fopbuf,filetype_buf);
+ 
+    sprintf(fopbuf,"concNprob.var.dat");
+    out23=fopen(fopbuf,filetype_buf);
+ 
 }
 
 /***********************************************************************************************************
@@ -1923,7 +1922,10 @@ void SetMeanOrg(organism *mean){
     
     for(ii=0;ii<curr_MAXSTATES;ii++) {
         mean->F[ii] =  0.0e0;
-        for(jj=0;jj<curr_MAXSTATES;jj++) mean->K[ii][jj] = 0.0e0;
+        for(jj=ii;jj<curr_MAXSTATES;jj++){
+			mean->K[ii][jj] = 0.0e0;
+			mean->nF[ii][jj] = 0.0e0;
+		}
     }
     
     if (allow_chaps==1){
@@ -1985,8 +1987,11 @@ void AddMeanOrg(organism *mean, int who){
     
     for(ii=0;ii<curr_MAXSTATES;ii++) {
         mean->F[ii] += myOrg[who].F[ii];
-        for(jj=0;jj<curr_MAXSTATES;jj++) mean->K[ii][jj] += myOrg[who].K[ii][jj];
-    }
+        for(jj=ii;jj<curr_MAXSTATES;jj++){
+			mean->K[ii][jj] += myOrg[who].K[ii][jj];
+			mean->nF[ii][jj] += myOrg[who].nF[ii][jj];	
+		} 
+   }
     
     if (allow_chaps==1){
         mean->F[2*curr_MAXGENES] += myOrg[who].F[2*curr_MAXGENES];
@@ -2038,7 +2043,6 @@ void GetMeanOrg(organism *mean, int orgcount){
         mean->Kc[ii] /= (double)orgcount;
         mean->Nch[ii] /= (double)orgcount;
         
-        //mean->F[ii] /= (double)orgcount;
         mean->pnat[ii] /= (double)orgcount;
         mean->hydro[ii] /= (double)orgcount;
         mean->netcharge[ii] /= (double)orgcount;
@@ -2053,12 +2057,14 @@ void GetMeanOrg(organism *mean, int orgcount){
         mean->tot_mut[ii] /= (double)orgcount;
         mean->synmut[ii] /= (double)orgcount;
         
-        //for(jj=0;jj<curr_MAXGENES;jj++) mean->K[ii][jj] /= (double)orgcount;
     }
     
     for(ii=0;ii<curr_MAXSTATES;ii++) {
         mean->F[ii] /= (double)orgcount;
-        for(jj=0;jj<curr_MAXSTATES;jj++) mean->K[ii][jj] /= (double)orgcount;
+        for(jj=ii;jj<curr_MAXSTATES;jj++){
+			mean->K[ii][jj] /= (double)orgcount;
+			mean->nF[ii][jj] /= (double)orgcount;
+		}
     }
     
     if (allow_chaps==1){
