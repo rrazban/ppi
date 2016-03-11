@@ -61,7 +61,10 @@ void SetMeanOrg(organism *mean);
 void AddMeanOrg(organism *mean, int who);
 void GetMeanOrg(organism *mean, int orgcount);
 int seq_entropy(char **seq, int N, double *entropy);
-
+void SetVarOrg(organism *var);
+void AddVarOrg(organism *var, int who);
+void GetVarOrg(organism *var, int orgcount);
+void GetMeanOrg(organism *var, int orgcount);
 
 /*time evaluation functions:*/
 void start_clock(void);
@@ -110,6 +113,7 @@ FILE *out4;
 
 parameter myParam;
 organism mean;
+organism var;
 
 /* parameters for sequence entropy calculation */
 double entropy[MAXGENES][AASEQLEN], entropy_sum[MAXGENES];
@@ -1019,6 +1023,7 @@ void PrepareOutput(){
     m=count=mutatorcount=0;
     for(ii=0;ii<curr_MAXGENES;ii++) mutatororigin[ii]=0;
     SetMeanOrg(&mean);
+	SetVarOrg(&var);
     for(who=0;who<POPSIZE;who++){
         if(myOrgstatus[who]!=S_ALIVE) continue;
         AddMeanOrg(&mean, who);
@@ -1029,7 +1034,12 @@ void PrepareOutput(){
         m++;
     }
     GetMeanOrg(&mean,m);
-    
+    for(who=0;who<POPSIZE;who++){
+        if(myOrgstatus[who]!=S_ALIVE) continue;
+        AddVarOrg(&var, who);
+    }
+	GetVarOrg(&var, m);
+	
     entropy_sumtot = 0.0;
     for(ii=0;ii<curr_MAXGENES;ii++) {
         seq_entropy(seq[ii], m, entropy[ii]);
@@ -1688,6 +1698,14 @@ void PrintOutput(){
         for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %E", mean.Gij[ii]);
         fprintf(out22,"\n");
         
+        fprintf(out23,"%08d",divisioncycle);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %E", var.C[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out23, " %E", var.F[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out23, " %E", var.nF[ii][jj]);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.10E", var.pnat[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %E", var.pint[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %E", var.Gij[ii]);
+        fprintf(out23,"\n");
         
        
         
@@ -1952,7 +1970,7 @@ void SetMeanOrg(organism *mean){
     }
     return;
 }
-
+ 
 void AddMeanOrg(organism *mean, int who){
     int ii, jj;
     mean->birthrate += myOrg[who].birthrate;
@@ -1964,7 +1982,6 @@ void AddMeanOrg(organism *mean, int who){
         mean->si[ii] += myOrg[who].si[ii];
         mean->nsi2[ii] += myOrg[who].nsi2[ii];
         mean->si2[ii] += myOrg[who].si2[ii];
-        //mean->F[ii] += myOrg[who].F[ii];
         mean->pnat[ii] += myOrg[who].pnat[ii];
         
         mean->hydro[ii] += myOrg[who].hydro[ii];
@@ -2100,6 +2117,69 @@ void GetMeanOrg(organism *mean, int orgcount){
     return;
 }
 
+void SetVarOrg(organism *var){	
+    int ii, jj;
+
+    for(ii=0;ii<curr_MAXGENES;ii++) {
+        var->C[ii] = var->pnat[ii] = 0.0e0;
+	}
+    
+    for(ii=0;ii<curr_MAXSTATES;ii++) {
+        var->F[ii] =  0.0e0;
+        for(jj=ii;jj<curr_MAXSTATES;jj++){
+			var->K[ii][jj] = 0.0e0;
+			var->nF[ii][jj] = 0.0e0;
+		}
+	}	
+	for(ii=0;ii<curr_MAXPPIS;ii++) {
+        var->Gij[ii] = var->pint[ii] = 0.0e0;
+	}
+}
+
+
+void AddVarOrg(organism *var, int who){	
+    int ii, jj;
+
+    for(ii=0;ii<curr_MAXGENES;ii++) {
+        var->C[ii] += pow(myOrg[who].C[ii]-mean.C[ii], 2.0);
+		var->pnat[ii] += pow(myOrg[who].pnat[ii]-mean.pnat[ii], 2.0);
+	}
+    
+    for(ii=0;ii<curr_MAXSTATES;ii++) {
+        var->F[ii] +=  pow(myOrg[who].F[ii]-mean.F[ii], 2.0);
+        for(jj=ii;jj<curr_MAXSTATES;jj++){
+			var->K[ii][jj] += pow(myOrg[who].K[ii][jj]-mean.K[ii][jj], 2.0);
+			var->nF[ii][jj] += pow(myOrg[who].nF[ii][jj]-mean.nF[ii][jj], 2.0);
+		}
+    }
+	for(ii=0;ii<curr_MAXPPIS;ii++) {
+        var->Gij[ii] += pow(myOrg[who].Gij[ii]-mean.Gij[ii], 2.0); 
+		var->pint[ii] += pow(myOrg[who].pint[ii]-mean.pint[ii], 2.0);
+	}
+
+}
+
+void GetVarOrg(organism *var, int orgcount){	
+    int ii, jj;
+
+    for(ii=0;ii<curr_MAXGENES;ii++) {
+        var->C[ii] /= (double)orgcount; 
+		var->pnat[ii] /= (double)orgcount;
+	}
+    
+    for(ii=0;ii<curr_MAXSTATES;ii++) {
+        var->F[ii] /=  (double)orgcount;
+        for(jj=ii;jj<curr_MAXSTATES;jj++){
+			var->K[ii][jj] /= (double)orgcount;
+			var->nF[ii][jj] /= (double)orgcount;
+		}
+    }
+	for(ii=0;ii<curr_MAXPPIS;ii++) {
+        var->Gij[ii] /= (double)orgcount;
+		var->pint[ii] /= (double)orgcount;
+	}
+
+}
 
 
 /************************************************************************

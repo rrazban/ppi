@@ -1487,7 +1487,7 @@ int UpdateEquilibriumConstant(parameter *myParam, int who, int func){
         
     }
     
-    else{
+    else{		//RMR sims
         
         for(i=0;i<curr_MAXGENES;i++){
             CharNucSeqToAASeq(myOrg[who].genome+i*NUCSEQLEN,NUCSEQLEN,aaseq);
