@@ -293,10 +293,10 @@ int main(int argc, char *argv[]){
                         do{ ii = (int)( ((double) rand()/RAND_MAX) * MAXORGANISMS );
                         } while( ii==MAXORGANISMS || ii==who );
                         
-                        //kill it:
+                        //kill it and replace it
                         memmove(&myOrg[ii], &myOrg[who], sizeof(organism));
                         
-                        if (allow_gene_exp==1){
+                        if (allow_gene_exp==1){			//RMR sims
                             do{ kk = (int)( ((double) rand()/RAND_MAX) * 2 );
                             } while( kk==2 );
                             // randomly assigns a fate: 0, 1
@@ -1689,22 +1689,22 @@ void PrintOutput(){
         fprintf(out1, " %s ", seqbuf);
         fprintf(out1,"\n");
         
-        fprintf(out22,"%08d",divisioncycle);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %E", mean.C[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %E", mean.F[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out22, " %E", mean.nF[ii][jj]);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.10E", mean.pnat[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %E", mean.pint[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %E", mean.Gij[ii]);
+        fprintf(out22,"%.3E",TIME);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.C[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %.3E", mean.F[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out22, " %.3E", mean.nF[ii][jj]);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.pnat[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.pint[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.Gij[ii]);
         fprintf(out22,"\n");
         
-        fprintf(out23,"%08d",divisioncycle);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %E", var.C[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out23, " %E", var.F[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out23, " %E", var.nF[ii][jj]);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.10E", var.pnat[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %E", var.pint[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %E", var.Gij[ii]);
+        fprintf(out23,"%.3f",TIME);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.C[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out23, " %.3E", var.F[ii]);
+        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out23, " %.3E", var.nF[ii][jj]);
+        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.pnat[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.pint[ii]);
+        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.Gij[ii]);
         fprintf(out23,"\n");
         
        
