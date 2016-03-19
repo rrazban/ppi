@@ -97,12 +97,13 @@ void Openfiles();
 void PrepareOutput();
 void PostProcessing();
 void PrintHeaders(FILE *out);
+void PrintHeaders1(FILE *out);
 
 
 FILE *error_op;
 FILE *it_solver;
 FILE *out1, *out2, *out3, *out5, *out6, *out7, *out8, *out10, *out11, *finitvals, *out12, *out15, *out16, *out40, *out41;
-FILE *out22, *out23;
+FILE *out22, *out23, *out24;
 FILE *out42,*out43,*out44,*out45;
 
 
@@ -1709,9 +1710,13 @@ void PrintOutput(){
         fprintf(out23,"\n");
         
        
-        
-        
-
+        fprintf(out24,"%.3E",TIME);
+        fprintf(out24," %.3E",(double) divisioncycle);
+        fprintf(out24," %.3E",(double) domi_species/orgcount);
+	    PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
+        fprintf(out24, " %s", seqbuf);
+        fprintf(out24,"\n");
+      
     }
     
     //printf("beep9\n");
@@ -1736,6 +1741,15 @@ void PrintHeaders(FILE *out){
  
 }
 
+
+void PrintHeaders1(FILE *out){
+	int width=9;   	
+	
+	fprintf(out, "%*s ",width,"Time");
+	fprintf(out, "%*s ",width,"Dcycle");
+	fprintf(out, "%*s ",width,"Frac");
+	fprintf(out, "%*s\n",width,"RNA");
+}
 /***********************************************************************************************************
  **********************************************************************************************************/
 void Openfiles(){
@@ -1809,15 +1823,19 @@ void Openfiles(){
     sprintf(fopbuf,"seqlog-%s.dat", myParam.targetname);
     out4=fopen(fopbuf,filetype_buf);
    
-    sprintf(fopbuf,"concNprob.avg.dat");
+    sprintf(fopbuf,"phenotype.avg.dat");
     out22=fopen(fopbuf,filetype_buf);
  	fprintf(out22,"Mean\n");
 	PrintHeaders(out22);
 
-	sprintf(fopbuf,"concNprob.var.dat");
+	sprintf(fopbuf,"phenotype.var.dat");
     out23=fopen(fopbuf,filetype_buf);
  	fprintf(out23,"Variance\n");
 	PrintHeaders(out23);
+
+	sprintf(fopbuf,"genotype.dat");
+	out24=fopen(fopbuf,filetype_buf);
+	PrintHeaders1(out24);
 }
 
 /***********************************************************************************************************
