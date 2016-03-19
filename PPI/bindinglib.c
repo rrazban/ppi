@@ -330,7 +330,6 @@ double GetBindingP3(int *seq1, int struct1, int surf1, int *seq2, int struct2, i
 }
 
 
-//OP TO DO, define a new function with pre defined bmode? 
 double GetBindingK(int *seq1, int struct1, int *seq2, int struct2, double T){
   int face1, face2, rotate;
   int k, surfacetmp[9],surface1[9], surface2[9];

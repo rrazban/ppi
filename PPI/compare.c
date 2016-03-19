@@ -84,8 +84,8 @@ void main(int argc, char *argv[])
 
   for(i=0;i<num;i++) sscanf(argv[i+1],"%d",&arraySize[i]);
 
-  for(i=0;i<num;i++) fprintf(stderr,"%d ", arraySize[i]);
-  fprintf(stderr,"\n");
+//  for(i=0;i<num;i++) fprintf(stderr,"%d ", arraySize[i]);
+//  fprintf(stderr,"\n");
 
   RankSpeciesSize(arraySize, rankings, num);
 

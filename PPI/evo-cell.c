@@ -96,6 +96,7 @@ void Closefiles();
 void Openfiles();
 void PrepareOutput();
 void PostProcessing();
+void PrintHeaders(FILE *out);
 
 
 FILE *error_op;
@@ -334,8 +335,8 @@ int main(int argc, char *argv[]){
             
             
             //output
-            if ((divisioncycle % myParam.printoutcycle == 0) || (divisioncycle%myParam.dumpcycle == 0)){PrepareOutput();}
-            if ((divisioncycle % myParam.printoutcycle == 0)) {PrintOutput(); WriteConfig();}
+//          if ((divisioncycle % myParam.printoutcycle == 0) || (divisioncycle%myParam.dumpcycle == 0)){PrepareOutput();}
+            if ((divisioncycle % myParam.printoutcycle == 0)) PrepareOutput(); PrintOutput(); WriteConfig();
             
             Flushfiles();
         }//end if time condition
@@ -1514,7 +1515,7 @@ void PrintOutput(){
     
     //char fopbuf[100];
     
-    printf("gen %d orgcount %d\n", divisioncycle, orgcount);
+  //  printf("gen %d orgcount %d\n", divisioncycle, orgcount);
     
     //printf("test\n");
     
@@ -1698,7 +1699,7 @@ void PrintOutput(){
         for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.Gij[ii]);
         fprintf(out22,"\n");
         
-        fprintf(out23,"%.3f",TIME);
+        fprintf(out23,"%.3E",TIME);
         for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.C[ii]);
         for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out23, " %.3E", var.F[ii]);
         for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out23, " %.3E", var.nF[ii][jj]);
@@ -1717,12 +1718,30 @@ void PrintOutput(){
     
 }
 
+void PrintHeaders(FILE *out){
+	int width=9;   	
+
+	fprintf(out, "%*s ",width,"Time");
+	fprintf(out, "%*s ",width,"C1");
+	fprintf(out, "%*s ",width,"C2");
+	fprintf(out, "%*s ",width,"F1");
+	fprintf(out, "%*s ",width,"F2");
+	fprintf(out, "%*s ",width,"F11");
+	fprintf(out, "%*s ",width,"F12");
+	fprintf(out, "%*s ",width,"F22");
+	fprintf(out, "%*s ",width,"P1nat");
+	fprintf(out, "%*s ",width,"P2nat");
+	fprintf(out, "%*s ",width,"ppi");
+	fprintf(out, "%*s\n",width,"dimer");
+ 
+}
+
 /***********************************************************************************************************
  **********************************************************************************************************/
 void Openfiles(){
     char fopbuf[100];
     char filetype_buf[100];
-    
+ 
     if (RUN_BASED_ON_CONFIG == 0){
         sprintf(filetype_buf,"w");
     }
@@ -1792,10 +1811,13 @@ void Openfiles(){
    
     sprintf(fopbuf,"concNprob.avg.dat");
     out22=fopen(fopbuf,filetype_buf);
- 
-    sprintf(fopbuf,"concNprob.var.dat");
+ 	fprintf(out22,"Mean\n");
+	PrintHeaders(out22);
+
+	sprintf(fopbuf,"concNprob.var.dat");
     out23=fopen(fopbuf,filetype_buf);
- 
+ 	fprintf(out23,"Variance\n");
+	PrintHeaders(out23);
 }
 
 /***********************************************************************************************************
