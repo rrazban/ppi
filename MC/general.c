@@ -6,6 +6,7 @@
 #include<assert.h>
 
 #include "structurelib.h"
+
 void InitNegOne(int *list, int len)
 {
    int i;

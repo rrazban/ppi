@@ -4,8 +4,7 @@
 #include<string.h>
 
 #include"structurelib.h"
-#include"define.h"
-#include"latticelib.h"
+#include"../LP/latticelib.h"
 
 int CoordMatrix[NUMCONF][81];
 int AllFaces[NUMCONF*6*4][9];
@@ -18,7 +17,6 @@ FILE *infile;
 int i,j;
 int xmin,ymin,zmin;
 
-//infile=fopen("coord103346.dat","r");
 infile=fopen(filename,"r");
 if (!infile) {fprintf(stderr,"cannot read coord matrix\n"); exit(1);}
 
@@ -283,12 +281,12 @@ void MakeContactMatrix()
 void ReadCommondata()
 {
 char rootdir[100], file[100];
-sprintf(rootdir,"%s","/n/home12/rrazban/ppi/codeOP");
-sprintf(file, "%s/commondata/coord10000.dat", rootdir);
+sprintf(rootdir,"%s","/n/home12/rrazban/code");
+sprintf(file, "%s/commondata/LPforms/coord10000.dat", rootdir);
 ReadCoordMatrix(file);
 MakeAllFaces();
 MakeContactMatrix();
-sprintf(file, "%s/commondata/MJ96_energy.dat", rootdir);
+sprintf(file, "%s/commondata/MJ96/energy.dat", rootdir);
 ReadEnergyMatrix(file);
 return;
 }

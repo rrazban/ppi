@@ -5,9 +5,8 @@
 #include <time.h>
 
 #include "zlib.h"
-#include "define.h"
-#include "gencode.h"
-#include "latticelib.h"
+#include "../LP/gencode.h"
+#include "../LP/latticelib.h"
 #include "general.h"
 #include "structurelib.h"
 
