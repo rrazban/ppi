@@ -215,7 +215,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     sprintf(file, "%s/commondata/MJ96/hydrophobicity.dat", rootdir);
     fp1 = fopen(file,"r");
-    fprintf(stdout,"Read Hydrophobicity Data...\n");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
@@ -224,7 +223,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     sprintf(file, "%s/commondata/MJ96/hydrophobicityYesNo.dat", rootdir);
     fp1 = fopen(file,"r");
-    fprintf(stdout,"Read Hydrophobicity YES NO Data...\n");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
@@ -233,7 +231,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     sprintf(file, "%s/commondata/MJ96/hydrophobicityYesNo_avil.dat", rootdir);
     fp1 = fopen(file,"r");
-    fprintf(stdout,"Read Hydrophobicity avil YES NO Data...\n");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
@@ -243,7 +240,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     sprintf(file, "%s/commondata/MJ96/charge.dat", rootdir);
     fp1 = fopen(file,"r");
-    fprintf(stdout,"Read Charge Data...\n");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
@@ -365,8 +361,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                     }
                     
                 }
-                
-                printf("best face: %d\n", best_face_for_pint);
             }
             
             else{
@@ -528,7 +522,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
             
             
             
-            // calc birthrate, x0 and mutrate0:
+            // calc birthrate
             if(who==0){
                 myParam->birthrate = 1.0e0;
                 myParam->b0 = 1.0;
@@ -536,34 +530,12 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                 UpdateEquilibriumConstant(myParam, who, 0);
                 //printf("ok 3 who %d\n",who);
                 myParam->b0 = 1.0 * (myParam->deathrate / myOrg[who].birthrate);
-                printf("myOrg[who].birthrate = %E\n",myOrg[who].birthrate);
-                //myParam->birthrate = 0.01e0/myOrg[who].birthrate;
-                myParam->x0 = myOrg[0].Gij[4];
-                //myParam->x0 = 0.014659;
-                myParam->mutrate0=0.089e0/myParam->x0;
-                
-                
             }
             
-            
-            //printf("before UpdateEquilibriumConstant\n");
             UpdateEquilibriumConstant(myParam, who, 0);
-            //printf("after UpdateEquilibriumConstant\n");
             GetSequenceID(who);
             (*orgcount)++;
             UpdatePPISeqProps(who);
-            //exit(0);
-        }
-        
-    }
-    else{
-        for (who=0; who<curr_initial_pop_size; who++) {
-            //UpdateMonomerConcentration(myParam, who);
-            
-            
-            //UpdateEquilibriumConstant(myParam, who, 0); //with this line I got the 'CharNucSeqToAASeq() : Genetic Code Error!!!' ........ hu?????
-            //GetSequenceID(who);
-            //(*orgcount)++;
         }
         
     }
@@ -573,24 +545,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(stderr, ", %lf", myOrg[0].F[ii]);
     fprintf(stderr, "\n");
     
-    
-    for(ii=0; ii<curr_MAXPPIS; ii++) {
-        printf("pint[%d] between protein %d and %d: %lf bmode: %d\n",
-               ii, myOrg[0].ppi_pair[ii][0], myOrg[0].ppi_pair[ii][1], myOrg[0].pint[ii], myOrg[0].bmode[ii]);
-        //fflush(stdout);
-        //printf("beep1\n");
-    }
-    
-    
-    
-    printf("b0 (10d=b at  t=0) : %e\n", myParam->b0 );
-    
-    printf("Initial birth rate normalized to : %e\n", myOrg[0].birthrate);
-    printf("Initial F_66*pint66*pnat6*pnat6 (x0) : %e\n", myParam->x0);
-    fflush(stdout);
-    
-    
-    //printf("F_66*pint66 threshold for mutation rate based on factor %e : %e\n", myParam->mutthreshfac, myParam->mutthresh);
     fprintf(stderr,"Setup Finished...\n");
     
     return;
@@ -903,16 +857,13 @@ int UpdateBirthrateStoch(parameter *myParam, int who, int func){
             }
         }
 		else if (solo==0){
-			myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[k]);
+			myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[ii]);
 		}
         else{
             myOrg[who].birthrate *=myOrg[who].Gij[ii];
         }
-        
-        
-        
-        //myOrg[who].birthrate *=myOrg[who].Gij[ii];
     }
+
     if (hub_ID==10){
         myOrg[who].birthrate *=myOrg[who].F[ii]*myOrg[who].pnat[ii];
     }
@@ -939,33 +890,6 @@ int UpdateBirthrateStoch(parameter *myParam, int who, int func){
  *           4 (m->n via mutation), 5 (m->n via gene expression), 6 (m->n via T-jump)
  * func : 0 (mutation), 1 (gene expression), 2 (temperature jump)
  */
-/***********************************************************************************************************
- **********************************************************************************************************/
-int UpdateMutLevel(parameter *myParam, int who, int func)  //RR doesnt seem to ever be used
-{
-    myOrg[who].mutrate = myParam->mutrate0*(myParam->x0-myOrg[who].Gij[4]);
-    if(myOrg[who].mutrate < myParam->mutrate[0]) {
-        myOrg[who].mutrate = myParam->mutrate[0];
-    }
-    if(myOrg[who].mutrate > myParam->mutrate[1]) {
-        myOrg[who].mutrate = myParam->mutrate[1];
-    }
-    
-    if(myOrg[who].mutrate > myParam->mutthresh) {
-        if(myOrg[who].mutlevel == 0) {
-            myOrg[who].mutorigin = 1+func;
-            myOrg[who].mutlevel = 1;
-        }
-    } else {
-        if(myOrg[who].mutlevel == 1 ) {
-            myOrg[who].mutorigin = 4+func;
-            myOrg[who].mutlevel = 0;
-        }
-    }
-    
-    return 0;
-}
-
 /***********************************************************************************************************
  **********************************************************************************************************/
 int OrgDeath(parameter *myParam, int who, int compensate){
@@ -1293,8 +1217,6 @@ void PrintInitialCondition(FILE *out, parameter *myParam){
     fprintf(out, "SeqLogCycle : \t\t%d\n", myParam->seqlogcycle);
     fprintf(out, "ScreenOutCycle : \t%d\n", myParam->screenoutcycle);
     fprintf(out, "Sp Size Factor : \t%lf\n", myParam->speciessizefactor);
-    fprintf(out, "Mutrate0 : \t\t%lf\n", myParam->mutrate0);
-    fprintf(out, "x0 : \t\t\t%lf\n", myParam->x0);
     fprintf(out, "Wildtype Mut Rate : \t%.5f\n", myParam->mutrate[0]);
     fprintf(out, "Mutator Mut Rate : \t%.5f\n", myParam->mutrate[1]);
     fprintf(out, "Mutation Threshold : \t%lf\n", myParam->mutthresh);
@@ -1553,7 +1475,7 @@ int UpdateEquilibriumConstant(parameter *myParam, int who, int func){
                 }
             }
            else if (solo==0){
-                myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[k]);
+                myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[ii]);
             }
 	       else{
                 myOrg[who].birthrate *= myOrg[who].Gij[ii];
@@ -1570,7 +1492,6 @@ int UpdateEquilibriumConstant(parameter *myParam, int who, int func){
     myOrg[who].birthrate/=(1.0e0+myParam->alpha*(C-((curr_MAXGENES+1)*0.1))*(C-((curr_MAXGENES+1)*0.1)));
     //  printf("myOrg[who].birthrate2 = %e\n", myOrg[who].birthrate);
     
-    //UpdateMutLevel(myParam, who, func); //OP, ok?
     
     return 0;
 }

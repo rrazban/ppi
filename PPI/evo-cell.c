@@ -181,15 +181,7 @@ int main(int argc, char *argv[]){
     RankSpeciesSizeDB(sizeRank, nOrgDB);
     
     
-    printf("Starting Output at zero step...\n");
-    
     PrepareOutput(); PrintOutput();
-    
-    
-    printf("Starting Main Loop...\n");
-    
-    
-        
     
     
     // MAIN LOOP
@@ -1762,11 +1754,7 @@ void Openfiles(){
     else {
         sprintf(filetype_buf,"a");
     }
-    printf("in Openfiles, filetype_buf=%s\n",filetype_buf);
-    
     sprintf(fopbuf,"init_vals-%s.dat", myParam.targetname);
-    printf("in Openfiles, fopbuf=%s\n",fopbuf);
-    
     
     finitvals=fopen(fopbuf,filetype_buf);
     fprintf(finitvals, "%s ", myParam.targetname);
@@ -1835,6 +1823,7 @@ void Openfiles(){
 
 	sprintf(fopbuf,"genotype.dat");
 	out24=fopen(fopbuf,filetype_buf);
+ 	fprintf(out24,"Absolute\n");
 	PrintHeaders1(out24);
 }
 
