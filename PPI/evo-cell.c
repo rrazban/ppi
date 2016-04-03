@@ -275,7 +275,8 @@ int main(int argc, char *argv[]){
                         r1=( (double) rand()/RAND_MAX );
                         r2=( (double) rand()/RAND_MAX );
                         if (r1 < 1.0e-50){ r1 = 1.0e-50;}
-                        dt=-(1.0e0/max_br)*log(r1);
+                       // dt=-(1.0e0/max_br)*log(r1);
+                        dt=-(1.0e0/max_br)*log(r1/max_br);
                         TIME=TIME+dt;
                         r2=r2*max_br;
                         for(who=0; who<MAXORGANISMS; who++) {
@@ -1834,6 +1835,7 @@ void Flushfiles(){
     fflush(out10); fflush(out11); fflush(out12); fflush(error_op); fflush(stdout); fflush(it_solver);
     fflush(out15); fflush(out16);
     fflush(out4);
+	fflush(out22); fflush(out23); fflush(out24);
 }
 
 /***********************************************************************************************************

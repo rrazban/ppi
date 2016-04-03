@@ -197,7 +197,8 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         myParam->mutrate[0] = 0.0001;
         myParam->mutrate[1] = 0.05;
         myParam->mutthresh = 0.01;
-        myParam->deathrate = 0.005e0;
+//        myParam->deathrate = 0.005e0;
+        myParam->deathrate = 0.01; // 1/100
         myParam->fixed_mutrate = 0.001; //0.0001;
     }
     else{
@@ -390,7 +391,8 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                 }
                 if (RANDOME_MODE==0){
                     bmode[ii]= temp_bmode_max;
-                }
+           			bmode[ii]=128;			//force it
+			     }
                 else{
                     do{bmode_temp = (int)( ( (double) rand()/RAND_MAX ) * 24 ); } while(  bmode_temp == 24 );
                     bmode[ii]= bmode_temp + (int)( best_face_for_pint*24 );
@@ -529,7 +531,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                 //printf("ok 2 who %d\n",who);
                 UpdateEquilibriumConstant(myParam, who, 0);
                 //printf("ok 3 who %d\n",who);
-                myParam->b0 = 1.0 * (myParam->deathrate / myOrg[who].birthrate);
+				myParam->b0 = 1.0 * (myParam->deathrate / myOrg[who].birthrate);
             }
             
             UpdateEquilibriumConstant(myParam, who, 0);
