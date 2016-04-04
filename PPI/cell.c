@@ -40,12 +40,10 @@ extern int allow_unfolded_states;
 extern int allow_chaps;
 extern int hub_ID;
 extern int curr_MAXSTATES;
-extern int runTime;
 extern float chaps_x;
 extern int singlish;
-extern double state_3rd;
 extern int sequenceversion;
-extern int solo;
+extern int selection;
 extern int homo;
 
 extern double TIME;
@@ -94,29 +92,26 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     char rootdir[200], file[200];
     
-    if (argc != 16) {
-        fprintf(stderr, "Usage ./lma targetname seed maxdivcycle curr_MAXGENES hub_ID allow_fold_change allow_gene_exp allow_unfolded_states runTime allow_chaps chaps_x singlish state_3rd solo sequenceversion\n");
+    if (argc != 6) {
+        fprintf(stderr, "Usage ./lma targetname seed sequenceversion maxdivcycle selection\n");
         exit(-1);
     }
     
     sscanf(argv[1], "%s", myParam->targetname);
     sscanf(argv[2], "%d", &(myParam->seed));
-    sscanf(argv[3], "%d", &(myParam->maxdivcycle));
-    sscanf(argv[4], "%d", &(curr_MAXGENES));
-    sscanf(argv[5], "%d", &(hub_ID));
-    
-    sscanf(argv[6], "%d", &(allow_fold_change));
-    sscanf(argv[7], "%d", &(allow_gene_exp));
-    sscanf(argv[8], "%d", &(allow_unfolded_states));
-    sscanf(argv[9], "%d", &(runTime));
-    sscanf(argv[10], "%d", &(allow_chaps));
-    sscanf(argv[11], "%f", &(chaps_x));
-    sscanf(argv[12], "%d", &(singlish));
-    sscanf(argv[13], "%lf", &(state_3rd));
-    sscanf(argv[14], "%d", &(solo));
-    sscanf(argv[15], "%d", &(sequenceversion));
+    sscanf(argv[3], "%d", &(sequenceversion));
+    sscanf(argv[4], "%d", &(myParam->maxdivcycle));
+    sscanf(argv[5], "%d", &(selection));
    
 	homo=0;//hard coded, when =1 homodimer on
+	allow_fold_change = 1;
+	allow_gene_exp = 1;
+	allow_unfolded_states = 0;
+	allow_chaps = 0;
+	chaps_x = 0.1;
+	singlish = 1;
+	curr_MAXGENES = 2;
+	hub_ID = 0;	
  
     if (hub_ID==10){
         eff_hub_ID=0;
@@ -134,9 +129,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     printf("allow_chaps=%d\n", allow_chaps);
     printf("chaps_x=%f\n", chaps_x);
     printf("singlish=%d\n", singlish);
-    printf("state_3rd=%f\n", state_3rd);
-    printf("runTime=%d\n", runTime);
-    printf("solo=%d\n", solo);
+    printf("selection=%d\n", selection);
     printf("sequenceversion=%d\n", sequenceversion);
     printf("\n");
     
@@ -391,7 +384,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                 }
                 if (RANDOME_MODE==0){
                     bmode[ii]= temp_bmode_max;
-           			bmode[ii]=128;			//force it
+           			bmode[ii]=126;			//force it
 			     }
                 else{
                     do{bmode_temp = (int)( ( (double) rand()/RAND_MAX ) * 24 ); } while(  bmode_temp == 24 );
@@ -858,7 +851,7 @@ int UpdateBirthrateStoch(parameter *myParam, int who, int func){
                 myOrg[who].birthrate *=myOrg[who].F[ii]*myOrg[who].pnat[ii];
             }
         }
-		else if (solo==0){
+		else if (selection==0){
 			myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[ii]);
 		}
         else{
@@ -1476,7 +1469,7 @@ int UpdateEquilibriumConstant(parameter *myParam, int who, int func){
                     myOrg[who].birthrate *=myOrg[who].F[ii]*myOrg[who].pnat[ii];
                 }
             }
-           else if (solo==0){
+           else if (selection==0){
                 myOrg[who].birthrate *= myOrg[who].Gij[ii]/(myOrg[who].K[i][j]*myOrg[who].pint[ii]);
             }
 	       else{

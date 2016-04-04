@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
   ReadCommondata();
   char aaseqL[100], nucseqL[100];
   int aaseqN[100], nucseqNA[100],nucseqNC[100], confC, ii, status;
-  double Tenv = 0.85, targetPnat = 0.99, pnatA, pnatC;
+  double Tenv = 1.0, targetPnat = 0.97, pnatA, pnatC;
 
   char fname[100];
   FILE *out;
@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
    printf("%d\t%f\t\n%s\n%s\n", confC, pnatC, nucseqL, aaseqL);
    sprintf(fname, "%d.seq", confC); 
    out = fopen(fname, "w");
+   fprintf(out, "%f\n", pnatC); 
    fprintf(out, "%s\n", nucseqL); 
   }
   else fprintf(stderr, "%d\t%f\t%s err \n", confC, pnatC, nucseqL); // Print sequence that didn't reach target Pnat to screen

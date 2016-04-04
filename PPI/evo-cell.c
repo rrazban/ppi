@@ -46,10 +46,9 @@ int allow_chaps;
 float chaps_x;
 int hub_ID;
 int singlish;
-double state_3rd;
 int POST_Proc;
 int sequenceversion;
-int solo;
+int selection;
 int homo;
 
 //int DumpProteome(char *filename); //un-used
@@ -66,18 +65,6 @@ void AddVarOrg(organism *var, int who);
 void GetVarOrg(organism *var, int orgcount);
 void GetMeanOrg(organism *var, int orgcount);
 
-/*time evaluation functions:*/
-void start_clock(void);
-int end_clock();
-
-/* time evaluation:*/
-static clock_t st_time;
-static clock_t en_time;
-static struct tms st_cpu;
-static struct tms en_cpu;
-
-int time2;
-int runTime;
 
 clock_t HDP_time_start, HDP_time_end;
 double HDP_cpu_time_used;
@@ -156,7 +143,6 @@ int main(int argc, char *argv[]){
     
     
     /*initialize time evaluation:*/
-    start_clock();
     ReadConfig();
     
     printf("OPEN...\n"); 
@@ -186,14 +172,8 @@ int main(int argc, char *argv[]){
     
     // MAIN LOOP
     /***********************************************************************************************************/
+
     for (divisioncycle=start_divisioncycle+1; divisioncycle <= myParam.maxdivcycle; divisioncycle++) {
-        if (end_clock() < runTime){
-            
-      //      if (divisioncycle>1000) myParam.printoutcycle = 250;
-    //        if (divisioncycle>10000) myParam.printoutcycle = 500;
-  //          if (divisioncycle>1000000) myParam.printoutcycle = 1000;
-            
-            //divisioncycle=1;while (end_clock() < runTime && divisioncycle <= myParam.maxdivcycle){
             switch (ALGORITHM) {
                 case 0: //Muyoung
                     overflowflag = 0; count1=count2=0;
@@ -329,16 +309,10 @@ int main(int argc, char *argv[]){
             
             
             //output
-//          if ((divisioncycle % myParam.printoutcycle == 0) || (divisioncycle%myParam.dumpcycle == 0)){PrepareOutput();}
             if ((divisioncycle % myParam.printoutcycle == 0)) PrepareOutput(); PrintOutput(); WriteConfig();
             
             Flushfiles();
         }//end if time condition
-        else{
-            printf("reached time limit %f min\n", (runTime/6000.0));
-            break;
-        }
-    } //end divisioncycle
     
     WriteConfig();
     fprintf(error_op, "1\n");
@@ -1265,7 +1239,7 @@ void ReadConfig(){
         myParam.seed = atoi(seed_s);
         myParam.startcode = atoi(startcode_s);
         myParam.orgcount = atoi(orgcount_s);
-        myParam.maxdivcycle = atoi(maxdivcycle_s);
+        myParam.maxdivcycle = atoi(maxdivcycle_s);	//gets overridden
         myParam.decimthresh = atoi(decimthresh_s);
         myParam.decimto = atoi(decimto_s);
         myParam.initpop = atoi(initpop_s);
@@ -1277,7 +1251,6 @@ void ReadConfig(){
         myParam.timeLow = atoi(timeLow_s);
         myParam.timeHigh = atoi(timeHigh_s);
         
-        printf("myParam.timeHigh = %d\n",myParam.timeHigh);
         //exit(0);
         
         fscanf(fp,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",Tenv_s,  tol_s,  TLow_s,  THigh_s,  birthrate_s,  deathrate_s,  expressrate_s,  alpha_s,  pnatcutoff_s,  speciessizefactor_s,  mutrate0_s,  mutrate01_s,  mutrate00_s,  x0_s,  b0_s,  fixed_mutrate_s,  mutthreshfac_s,  mutthresh_s,  bindindex_s);
@@ -2211,48 +2184,6 @@ void GetVarOrg(organism *var, int orgcount){
 	}
 
 }
-
-
-/************************************************************************
- void start_clock(): time evaluation funtion.
- This example assumes that the result of each subtraction
- is within the range of values that can be represented in
- an integer type.
- ************************************************************************/
-
-void start_clock()
-{
-    st_time = times(&st_cpu);
-}
-
-
-/************************************************************************
- void end_clock(): time evaluation funtion.
- This example assumes that the result of each subtraction
- is within the range of values that can be represented in
- an integer type.
- 
- printf("Real Time: %jd, User Time %jd, System Time %jd\n")
- CPUtime = user time + system time.
- fprintf(fpTime,"%d\t%jd\t%jd\t%jd\n", stepCount,
- (intmax_t)(en_time - st_time),
- (intmax_t)(en_cpu.tms_utime - st_cpu.tms_utime),
- (intmax_t)(en_cpu.tms_stime - st_cpu.tms_stime));
- fclose(fpTime);
- ************************************************************************/
-
-int end_clock()
-{
-    en_time = times(&en_cpu);
-    
-    return ((intmax_t)(en_cpu.tms_utime - st_cpu.tms_utime)+(intmax_t)(en_cpu.tms_stime - st_cpu.tms_stime));
-}
-
-
-
-
-
-
 
 
 /***********************************************************************************************************
