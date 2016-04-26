@@ -42,10 +42,10 @@ void MirrorWall(int *dest, int *src)
 {
 
 //  dest[0]=src[2];	
-  dest[0]=src[0];
-  dest[1]=src[1];
+  dest[0]=src[6];
+  dest[1]=src[7];
 //  dest[2]=src[0];
-  dest[2]=src[2];
+  dest[2]=src[8];
 
 //  dest[3]=src[5];
   dest[3]=src[3];
@@ -54,10 +54,10 @@ void MirrorWall(int *dest, int *src)
   dest[5]=src[5];
 
 //  dest[6]=src[8];
-  dest[6]=src[6];
-  dest[7]=src[7];
+  dest[6]=src[0];
+  dest[7]=src[1];
 //  dest[8]=src[6];
-  dest[8]=src[8];
+  dest[8]=src[2];
 
   return;
 }

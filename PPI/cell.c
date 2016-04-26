@@ -56,6 +56,8 @@ extern FILE *error_op;
 extern FILE *it_solver;
 
 int eff_hub_ID;
+char seqbuf[800];
+
 
 /***********************************************************************************************************
  **********************************************************************************************************/
@@ -445,7 +447,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                 //        bmode[ii]=bmode_max[ii];
                 
                 fprintf(stderr, "PPI (%1d), ppi: %.10lE, bmode: %d\n", ii, pint[ii], bmode[ii]); fflush(stdout);
-            }
+ 			}
             
         }
         
@@ -539,9 +541,6 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     fprintf(stderr, "F_i");
     for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(stderr, ", %lf", myOrg[0].F[ii]);
     fprintf(stderr, "\n");
-    
-    fprintf(stderr,"Setup Finished...\n");
-    
     return;
 }
 
@@ -555,7 +554,7 @@ int IterativeSolver(int who){
     int eps_flag;
     int max_iterations = 300000000;
     
-    double max_error  = 10e-15;
+    double max_error  = 10e-8;//15;
     double max_error2 = 10e-3;
     
     

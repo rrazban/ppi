@@ -160,7 +160,6 @@ int main(int argc, char *argv[]){
     Openfiles();
     if (RUN_BASED_ON_CONFIG==0){start_divisioncycle = 0;} else{start_divisioncycle=divisioncycle;}
     
-    fprintf(stderr,"Start simulations...\n");
     
     divisioncycle=start_divisioncycle;
     ResetOrgDB(&myParam, divisioncycle);
@@ -168,7 +167,20 @@ int main(int argc, char *argv[]){
     
     
     PrepareOutput(); PrintOutput();
-    
+	
+	fprintf(stderr,"Interaction surface\n");
+    int aaseq_surface_hub[AASURFACELEN], aaseq_surface_partner[AASURFACELEN], s_i, hub_i, par_i;
+	for (ii=0;ii<curr_MAXPPIS; ii++){
+		hub_i=0; par_i=ii+1;
+        GetSurfaceAAPositions(myOrgDB[sizeRank[0]].structid[hub_i], myOrgDB[sizeRank[0]].structid[par_i], myOrgDB[sizeRank[0]].bmode[ii],
+                                  aaseq_surface_hub, aaseq_surface_partner);
+        for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(stderr, " %02d", aaseq_surface_hub[s_i]);
+    	fprintf(stderr, "\n");
+	    for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(stderr, " %02d", aaseq_surface_partner[s_i]);
+            
+     }
+     fprintf(stderr,"\nStart simulations...\n");
+
     
     // MAIN LOOP
     /***********************************************************************************************************/

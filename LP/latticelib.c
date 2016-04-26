@@ -124,7 +124,6 @@ double SequenceEnergy(int *Seq, int conformnumber)
         j =  ContactMatrixB[conformnumber][k];
         e += EnergyMatrix[Seq[i]][Seq[j]];
     }
-    
     return e;
 }
 
