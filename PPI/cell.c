@@ -200,16 +200,17 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         srand(myParam->seed);
     }
     
-    sprintf(rootdir,"%s",".");
-    sprintf(file, "%s/commondata/LPforms/contact10000.dat", rootdir);
+  //  sprintf(rootdir,"%s",".");
+    sprintf(rootdir,"%s","/n/home12/rrazban/code/commondata");
+    sprintf(file, "%s/LPforms/contact10000.dat", rootdir);
     ReadContactMatrix(file);
-    sprintf(file, "%s/commondata/LPforms/allfaces10000.dat", rootdir);
+    sprintf(file, "%s/LPforms/allfaces10000.dat", rootdir);
     ReadAllSurfaces(file);
-    sprintf(file, "%s/commondata/MJ96/energy.dat", rootdir);
+    sprintf(file, "%s/MJ96/energy.dat", rootdir);
     ReadEnergyMatrix(file);
     
     
-    sprintf(file, "%s/commondata/MJ96/hydrophobicity.dat", rootdir);
+    sprintf(file, "%s/MJ96/hydrophobicity.dat", rootdir);
     fp1 = fopen(file,"r");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
@@ -217,7 +218,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         Hydrophobicity[in_tmp1] = (double) tmp1;
     }
     
-    sprintf(file, "%s/commondata/MJ96/hydrophobicityYesNo.dat", rootdir);
+    sprintf(file, "%s/MJ96/hydrophobicityYesNo.dat", rootdir);
     fp1 = fopen(file,"r");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
@@ -225,7 +226,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         HydrophobicityYesNo[in_tmp1] = (double) tmp1;
     }
     
-    sprintf(file, "%s/commondata/MJ96/hydrophobicityYesNo_avil.dat", rootdir);
+    sprintf(file, "%s/MJ96/hydrophobicityYesNo_avil.dat", rootdir);
     fp1 = fopen(file,"r");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
@@ -234,7 +235,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     }
     
     
-    sprintf(file, "%s/commondata/MJ96/charge.dat", rootdir);
+    sprintf(file, "%s/MJ96/charge.dat", rootdir);
     fp1 = fopen(file,"r");
     while (!feof(fp1)){
         fscanf(fp1,"%d%f\n",&in_tmp1, &tmp1);
@@ -247,7 +248,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     /* read initial gene sequence, Need to correct*/
     if (RUN_BASED_ON_CONFIG==0){
         fprintf(stderr, "Reading initial sequence...\n");
-        sprintf(file, "%s/commondata/seqs/v%d.seq", rootdir,sequenceversion);
+        sprintf(file, "%s/seqs/v%d.seq", rootdir,sequenceversion);
         if ((fp1=fopen(file,"r")) == NULL) { fprintf(stderr, "Can't open %s file\n", file); exit(-1);}
         ii = 0;
         

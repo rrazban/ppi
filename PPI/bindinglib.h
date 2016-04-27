@@ -29,7 +29,7 @@ void ReadAllSurfaces(char *filename);
 mirror image of the interacting surface
 surface is an integer array[9]
 */
-void MirrorWall(int *dest, int *src);
+void MirrorWall(int *dest, int *src, int rotate);
 
 /*
 returns binding energy of seq1 and seq2.

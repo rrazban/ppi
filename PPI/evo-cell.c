@@ -586,14 +586,13 @@ void PostProcessing(){
                             
                             
                             for(face1=0;face1<6;face1++){
-                                for(k=0; k<9; k++) surfacetmp[k] = aaseq_pp[(int) AllFaces[24*protein_structid[gi_1]+4*face1+0][k]];
-                                MirrorWall(surface1, surfacetmp);
+                                for(k=0; k<9; k++) surface1[k] = aaseq_pp[(int) AllFaces[24*protein_structid[gi_1]+4*face1+0][k]];
                                 for(face2=0;face2<6;face2++){
                                     for(rotate=0;rotate<4;rotate++){
                                         
                                         
-                                        for(k=0; k<9; k++) surface2[k] = aaseq2_pp[(int) AllFaces[24*protein_structid[gi_2]+4*face2+rotate][k]];
-                                        
+                                        for(k=0; k<9; k++) surfacetmp[k] = aaseq2_pp[(int) AllFaces[24*protein_structid[gi_2]+4*face2+rotate][k]];
+                                        MirrorWall(surface2, surfacetmp, rotate); 
                                         ConvertAAtoCharge(surface1, surface1_t_charge, AASURFACELEN);
                                         ConvertAAtoCharge(surface2, surface2_t_charge, AASURFACELEN);
                                         ConvertAAtoHydro(surface1, surface1_t_hydro, AASURFACELEN);
