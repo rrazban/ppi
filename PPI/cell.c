@@ -144,10 +144,11 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     else {POST_Proc = 0;}
     
     
-    sprintf(fopbuf,"error_op-%s.dat", myParam->targetname);
+    sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/%s", myParam->targetname);
+    sprintf(fopbuf,"%s/error_op.dat", rootdir);
     error_op=fopen(fopbuf,"w");
     
-    sprintf(fopbuf,"it_solver-%s.dat", myParam->targetname);
+    sprintf(fopbuf,"%s/it_solver.dat", rootdir);
     it_solver=fopen(fopbuf,"w");
     
     

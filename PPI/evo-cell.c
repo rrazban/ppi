@@ -51,10 +51,6 @@ int sequenceversion;
 int selection;
 int homo;
 
-//int DumpProteome(char *filename); //un-used
-//int RecountOrgDB(int divisioncycle); //un-used
-//int DumpDB(parameter *myParam, int divisioncycle); //un-used
-
 int ResetOrgDB(parameter *myParam, int divisioncycle);
 void SetMeanOrg(organism *mean);
 void AddMeanOrg(organism *mean, int who);
@@ -86,19 +82,11 @@ void PostProcessing();
 void PrintHeaders(FILE *out);
 void PrintHeaders1(FILE *out);
 
-
-FILE *error_op;
 FILE *it_solver;
-FILE *out1, *out2, *out3, *out5, *out6, *out7, *out8, *out10, *out11, *finitvals, *out12, *out15, *out16, *out40, *out41;
+FILE *error_op;
+FILE *out1;
 FILE *out22, *out23, *out24;
-FILE *out42,*out43,*out44,*out45;
 
-
-FILE *out50;
-
-
-//FILE *zout4;
-FILE *out4;
 
 parameter myParam;
 organism mean;
@@ -148,14 +136,6 @@ int main(int argc, char *argv[]){
     printf("OPEN...\n"); 
     
     SetupParameter(argc, argv, &myParam, &orgcount);
-    
-    
-    if (POST_Proc==1){
-        fprintf(stderr,"Start post-proccessing ...\n"); fflush(stdout);
-        PostProcessing();
-        fprintf(stderr,"Done post-proccessing, exit(0)\n"); fflush(stdout);
-        exit(0); 
-    }
     
     Openfiles();
     if (RUN_BASED_ON_CONFIG==0){start_divisioncycle = 0;} else{start_divisioncycle=divisioncycle;}
@@ -335,664 +315,6 @@ int main(int argc, char *argv[]){
 
 /***********************************************************************************************************
  **********************************************************************************************************/
-void PostProcessing(){
-    int t_pp;
-    int generation_pp, Nclon_pp, PopSize_pp;//; , nOrgDB_pp; //, diff_pp;
-    int index_pp,ClonSize_pp;
-    int ii,j;
-    int tmp_pnat,br_pp;
-    
-    char fopbuf[200];
-    char seq_pp[1000];
-
-    int aaseq_pp[AASEQLEN], aaseq2_pp[AASEQLEN],aaseq_face[AASURFACELEN],aaseq_face_hub[AASURFACELEN],aaseq_face_par[AASURFACELEN];
-    int chargeseq_face_hub[AASURFACELEN],chargeseq_face_par[AASURFACELEN];
-
-    int fi,gi,int_i;
-    
-    int int_genome[MAXGENES*NUCSEQLEN];
-    
-    int eofReached;
-    
-    /*properties to calculate: */
-    
-    double surface_frac_hydro[curr_MAXGENES][6], surface_net_charge[curr_MAXGENES][6],
-        surface_pos_charge[curr_MAXGENES][6], surface_neg_charge[curr_MAXGENES][6], surface_frac_charge[curr_MAXGENES][6];
-    
-    double int_surface_frac_hydro[curr_MAXGENES], int_surface_net_charge[curr_MAXGENES],
-        int_surface_pos_charge[curr_MAXGENES], int_surface_neg_charge[curr_MAXGENES], int_surface_frac_charge[curr_MAXGENES];
-    
-    int int_surface_counter[curr_MAXGENES];
-    
-    double non_int_surface_frac_hydro[curr_MAXGENES], non_int_surface_net_charge[curr_MAXGENES],
-        non_int_surface_pos_charge[curr_MAXGENES], non_int_surface_neg_charge[curr_MAXGENES], non_int_surface_frac_charge[curr_MAXGENES];
-    
-    int interaction_partners[curr_MAXPPIS][2];
-    int interaction_surfaces[curr_MAXPPIS][2];
-    int interaction_bmode[curr_MAXPPIS];
-    
-    int protein_structid[curr_MAXGENES];
-    int protein_interacting_faced[curr_MAXGENES][6];
-    
-    double interaction_energy[curr_MAXPPIS];
-    double interaction_energy_hydro[curr_MAXPPIS];
-    double interaction_energy_charge[curr_MAXPPIS];
-    //double non_interaction_energy[curr_MAXGENES*];
-    
-    
-    int inter_surface_charge[curr_MAXPPIS][2][AASURFACELEN];
-    int inter_surface_hydro[curr_MAXPPIS][2][AASURFACELEN];
-    int inter_surface_hydro_avil[curr_MAXPPIS][2][AASURFACELEN];
-    
-    int iii;
-    
-    
-    
-    //printf("\nin postproc...\n");fflush(stdout);
-    //exit(0);
-    
-    for(gi=0;gi<curr_MAXGENES;gi++){
-        protein_structid[gi] = myOrg[1].structid[gi];
-    }
-    
-    for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-        interaction_partners[int_i][0]=myOrg[1].ppi_pair[int_i][0];
-        interaction_partners[int_i][1]=myOrg[1].ppi_pair[int_i][1];
-        interaction_bmode[int_i] = myOrg[1].bmode[int_i];
-        interaction_surfaces[int_i][0] = interaction_bmode[int_i]/24; 
-        interaction_surfaces[int_i][1] = (interaction_bmode[int_i]%24)/4;
-        printf("interaction_surfaces[int_i][0] = %d, interaction_surfaces[int_i][1]=%d\n",interaction_surfaces[int_i][0],interaction_surfaces[int_i][1]);
-        
-    }
-    
-    for(gi=0;gi<curr_MAXGENES;gi++){
-        for(fi=0;fi<6;fi++){
-            protein_interacting_faced[gi][fi]=0;
-        }
-    }
-    
-    for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-        protein_interacting_faced[interaction_partners[int_i][0]][interaction_surfaces[int_i][0]]=1;
-        protein_interacting_faced[interaction_partners[int_i][1]][interaction_surfaces[int_i][1]]=1;
-    }
-    
-    //printf("beep1\n");fflush(stdout);
-    
-    sprintf(fopbuf,"seqlog-%s.dat", myParam.targetname);
-    printf("%s\n", fopbuf);fflush(stdout);
-    out4=fopen(fopbuf,"r");
-    
-    //printf("beep1.1\n");fflush(stdout);
-    
-    sprintf(fopbuf,"faceslog-%s.dat", myParam.targetname);
-    out40=fopen(fopbuf,"w");
-    
-    //printf("beep1.2\n");fflush(stdout);
-    
-    sprintf(fopbuf,"bindingenergies-%s.dat", myParam.targetname);
-    out41=fopen(fopbuf,"w");
-    
-    //printf("beep1.3\n");fflush(stdout);
-    
-    sprintf(fopbuf,"surfacemaps_charge-%s.dat", myParam.targetname);
-    out42=fopen(fopbuf,"w");
-    
-    //printf("beep1.35\n");fflush(stdout);
-    
-    sprintf(fopbuf,"surfacemaps_hydro_avil-%s.dat", myParam.targetname);
-    out43=fopen(fopbuf,"w");
-    
-    //printf("beep1.4\n");fflush(stdout);
-    
-    sprintf(fopbuf,"surfacemaps_hydro-%s.dat", myParam.targetname);
-    out44=fopen(fopbuf,"w");
-    
-    //printf("beep1.5\n");fflush(stdout);
-    
-    sprintf(fopbuf,"non_funct_energies-%s.dat", myParam.targetname);
-    out45=fopen(fopbuf,"w");
-    
-    sprintf(fopbuf,"all_surfaces_stats-%s.dat", myParam.targetname);
-    out50=fopen(fopbuf,"w");
-    
-    //printf("beep2\n");fflush(stdout);
-    
-    for (t_pp=0; t_pp < divisioncycle ; t_pp++){
-    //for (t_pp=0; t_pp < 500 ; t_pp++){
-        //printf("time=%d\n",t_pp);
-        eofReached = (fscanf(out4, "%d %4d %4d\n",&generation_pp, &Nclon_pp, &PopSize_pp)==EOF);
-        //printf("generation_pp %d, Nclon_pp %d, PopSize_pp %d\n", generation_pp, Nclon_pp, PopSize_pp);
-        //printf("eofReached = %d\n",eofReached);
-        
-        
-        if (eofReached) {
-            printf("Post Processing DONE \n\n");
-            fclose(out40); fclose(out41);
-            exit(0);
-            
-            
-        }
-        //printf("Read first line \n\n");
-        
-        for(ii=0;ii<Nclon_pp;ii++) {
-            fscanf(out4, "%4d %4d %1d ",&index_pp,&ClonSize_pp,&br_pp);
-            fscanf(out4, "%s ",seq_pp);
-            
-            //fprintf(stdout,"SEQ : %s\n", seq_pp);fflush(stdout);
-
-            
-            LetterToNucCodeSeq(seq_pp, int_genome, 7*NUCSEQLEN);
-            //PrintNucCodeSequence(buf, int_genome, 7*NUCSEQLEN); //just checking ..
-            //fprintf(stdout,"buf : %s\n", buf);fflush(stdout);
-            
-            
-            for(j=0;j<curr_MAXGENES;j++) {
-                fscanf(out4, "%5d ", &tmp_pnat);
-            }
-            fscanf(out4, "\n");
-            
-            if (ii==0){ //first clone
-
-                
-                for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-                    NucSeqToAASeq(int_genome+interaction_partners[int_i][0]*NUCSEQLEN,NUCSEQLEN,aaseq_pp);
-                    NucSeqToAASeq(int_genome+interaction_partners[int_i][1]*NUCSEQLEN,NUCSEQLEN,aaseq2_pp);
-                    
-                    interaction_energy[int_i] = GetBindingEnergy2 (aaseq_pp, protein_structid[interaction_partners[int_i][0]], aaseq2_pp, protein_structid[interaction_partners[int_i][1]], interaction_bmode[int_i]);
-                    interaction_energy_hydro[int_i] = GetBindingEnergyHydro (aaseq_pp, protein_structid[interaction_partners[int_i][0]], aaseq2_pp, protein_structid[interaction_partners[int_i][1]], interaction_bmode[int_i]);
-                    interaction_energy_charge[int_i] = GetBindingEnergyCharge (aaseq_pp, protein_structid[interaction_partners[int_i][0]], aaseq2_pp, protein_structid[interaction_partners[int_i][1]], interaction_bmode[int_i]);
-                }
-                
-                fprintf(out41, "%d %d", generation_pp, generation_pp);
-                for(int_i=0;int_i<curr_MAXPPIS;int_i++) fprintf(out41, " %E", interaction_energy[int_i]);
-                fprintf(out41,"\n");
-                
-                
-                
-                
-                if (generation_pp > (divisioncycle - 10000)){
-                    
-                    //printf("beep1\n");
-                    //exit(0);
-                    
-                    
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    
-                    //print all non functional binding energies:
-                    
-                    int gi_1, gi_2;
-                    int face1, face2, rotate;
-                    int k, surfacetmp[9],surface1[9], surface2[9];
-                    double e, e_hydro, e_charge, e_hydro_neg, e_charge_neg;
-                    
-                    double min_energy = -50; //-49;;
-                    double max_energy = 1;
-                    double energy_interval = 0.05;
-                    int energy_histogram[3000];
-                    int energy_histogram_non_funct[3000];
-                    int energy_histogram_funct[3000];
-                    
-                    int energy_histogram_funct_hydro[3000];
-                    int energy_histogram_funct_charge[3000];
-                    int energy_histogram_non_funct_hydro[3000];
-                    int energy_histogram_non_funct_charge[3000];
-                    int energy_histogram_non_funct_hydro_neg[3000];
-                    int energy_histogram_non_funct_charge_neg[3000];
-                    
-                    double energy_cum;
-                    int energy_hist_i;
-                    
-                    int curr_bmode;
-                    int is_funct_int;
-                    
-                    int surface1_t_charge[9], surface2_t_charge[9];
-                    int surface1_t_hydro[9], surface2_t_hydro[9];
-                    
-                    
-                    energy_hist_i=0;
-                    
-                    
-                    energy_hist_i=0;
-                    energy_cum = min_energy;
-                    while (energy_cum<=max_energy){
-                        energy_histogram[energy_hist_i] = 0;
-                        energy_histogram_non_funct[energy_hist_i] = 0;
-                        energy_histogram_funct[energy_hist_i] = 0;
-                        energy_histogram_funct_hydro[energy_hist_i] = 0;
-                        energy_histogram_funct_charge[energy_hist_i] = 0;
-                        energy_histogram_non_funct_hydro[energy_hist_i] = 0;
-                        energy_histogram_non_funct_charge[energy_hist_i] = 0;
-                        energy_histogram_non_funct_hydro_neg[energy_hist_i] = 0;
-                        energy_histogram_non_funct_charge_neg[energy_hist_i] = 0;
-                        
-                        energy_cum += energy_interval;
-                        energy_hist_i++;
-                    }
-                    
-                    
-//                    interaction_partners[int_i][0]=myOrg[1].ppi_pair[int_i][0];
-//                    interaction_partners[int_i][1]=myOrg[1].ppi_pair[int_i][1];
-//                    interaction_bmode[int_i]
-                    
-                    
-                    for(gi_1=0; gi_1<curr_MAXGENES; gi_1++){
-                        for(gi_2=gi_1; gi_2<curr_MAXGENES; gi_2++){
-                            NucSeqToAASeq(int_genome+gi_1*NUCSEQLEN,NUCSEQLEN,aaseq_pp);
-                            NucSeqToAASeq(int_genome+gi_2*NUCSEQLEN,NUCSEQLEN,aaseq2_pp);
-                            
-                            
-                            
-                            
-                            for(face1=0;face1<6;face1++){
-                                for(k=0; k<9; k++) surface1[k] = aaseq_pp[(int) AllFaces[24*protein_structid[gi_1]+4*face1+0][k]];
-                                for(face2=0;face2<6;face2++){
-                                    for(rotate=0;rotate<4;rotate++){
-                                        
-                                        
-                                        for(k=0; k<9; k++) surfacetmp[k] = aaseq2_pp[(int) AllFaces[24*protein_structid[gi_2]+4*face2+rotate][k]];
-                                        MirrorWall(surface2, surfacetmp, rotate); 
-                                        ConvertAAtoCharge(surface1, surface1_t_charge, AASURFACELEN);
-                                        ConvertAAtoCharge(surface2, surface2_t_charge, AASURFACELEN);
-                                        ConvertAAtoHydro(surface1, surface1_t_hydro, AASURFACELEN);
-                                        ConvertAAtoHydro(surface2, surface2_t_hydro, AASURFACELEN);
-                                        
-                                        e=0.0; e_charge=0.0; e_hydro=0.0;e_charge_neg=0.0; e_hydro_neg=0.0;
-                                        for(k=0; k<9; k++) {
-                                            e+=EnergyMatrix[surface1[k]][surface2[k]]-3.16;;
-                                            //if (((surface1_t_charge[k]==1) & (surface2_t_charge[k]==-1)) | ((surface1_t_charge[k]==-1) & (surface2_t_charge[k]==1))){
-                                            if (((surface1_t_charge[k]==1) & (surface2_t_charge[k]==-1)) |
-                                                    ((surface1_t_charge[k]==-1) & (surface2_t_charge[k]==1))){
-                                                e_charge+=EnergyMatrix[surface1[k]][surface2[k]]-3.16;;
-                                            }
-                                            if ((surface1_t_hydro[k]==1) & (surface2_t_hydro[k]==1)){
-                                                e_hydro+=EnergyMatrix[surface1[k]][surface2[k]]-3.16;;
-                                                
-                                            }
-                                            
-                                            if (((surface1_t_charge[k]==1) & (surface2_t_charge[k]==1)) |
-                                                ((surface1_t_charge[k]==-1) & (surface2_t_charge[k]==-1))){
-                                                e_charge_neg+=EnergyMatrix[surface1[k]][surface2[k]]-3.16;;
-                                            }
-                                            if (((surface1_t_hydro[k]==1) & (surface2_t_hydro[k]==0)) |
-                                                ((surface1_t_hydro[k]==0) & (surface2_t_hydro[k]==1))){
-                                                e_hydro_neg+=EnergyMatrix[surface1[k]][surface2[k]]-3.16;;
-                                            }
-                                            
-                                            //printf ("e_charge_neg=%f e_hydro_neg=%f\n",e_charge_neg,e_hydro_neg);
-
-                                            
-                                        }
-                                        //exit(0);
-                                        
-                                        // check if interaction is functional:
-                                        curr_bmode=face1*24+face2*4+rotate;
-                                        is_funct_int = 0;
-                                        for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-                                            if (hub_ID!=10){
-                                                if((interaction_partners[int_i][0]==gi_1)&(interaction_partners[int_i][1]==gi_2)&(interaction_bmode[int_i]==curr_bmode)){
-                                                    is_funct_int = 1;
-                                                }
-                                            }
-                                            else{
-
-                                                    //take into account only first pair
-                                                    if (int_i==0){
-                                                        if((interaction_partners[int_i][0]==gi_1)&(interaction_partners[int_i][1]==gi_2)&(interaction_bmode[int_i]==curr_bmode)){
-                                                            is_funct_int = 1;
-                                                        }
-                                                    }
-
-                                                
-                                                
-                                            }
-                                                
-                                        }
-                                        
-                                        
-                                        //total energy:                                        
-                                        e-=min_energy;
-                                        e_hydro-=min_energy;
-                                        e_charge-=min_energy;
-                                        e_hydro_neg-=min_energy;
-                                        e_charge_neg-=min_energy;
-                                        
-                                        
-                                        
-//                                        energy_histogram[energy_hist_i] = 0;
-//                                        energy_histogram_non_funct[energy_hist_i] = 0;
-//                                        energy_histogram_funct[energy_hist_i] = 0;
-//                                        energy_histogram_funct_hydro[energy_hist_i] = 0;
-//                                        energy_histogram_funct_charge[energy_hist_i] = 0;
-//                                        energy_histogram_non_funct_hydro[energy_hist_i] = 0;
-//                                        energy_histogram_non_funct_charge[energy_hist_i] = 0;
-                                        
-                                        energy_histogram[(int) floor(e/energy_interval)]++;
-                                        
-                                        if (is_funct_int == 1){
-                                            energy_histogram_funct[(int) floor(e/energy_interval)]++;
-//                                            e_hydro /=e;
-//                                            e_charge /=e;
-                                            energy_histogram_funct_hydro[(int) floor(e_hydro/energy_interval)]++;
-                                            energy_histogram_funct_charge[(int) floor(e_charge/energy_interval)]++;
-                                        }
-                                        else{
-//                                            e_hydro /=e;
-//                                            e_charge /=e;
-//                                            e_hydro_neg /=e;
-//                                            e_charge_neg /=e;
-                                            energy_histogram_non_funct[(int) floor(e/energy_interval)]++;
-                                            energy_histogram_non_funct_hydro[(int) floor(e_hydro/energy_interval)]++;
-                                            energy_histogram_non_funct_charge[(int) floor(e_charge/energy_interval)]++;
-                                            energy_histogram_non_funct_hydro_neg[(int) floor(e_hydro_neg/energy_interval)]++;
-                                            energy_histogram_non_funct_charge_neg[(int) floor(e_charge_neg/energy_interval)]++;
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            
-                            
-                            
-                        }
-                    }
-                    
-                    energy_hist_i=0;
-                    energy_cum = min_energy;
-                    while (energy_cum<=max_energy){
-                        fprintf(out45, "%f %d %d %d %d %d %d %d %d %d\n", energy_cum,
-                                energy_histogram[energy_hist_i],
-                                energy_histogram_funct[energy_hist_i],energy_histogram_funct_hydro[energy_hist_i],energy_histogram_funct_charge[energy_hist_i],
-                                energy_histogram_non_funct[energy_hist_i],energy_histogram_non_funct_hydro[energy_hist_i],energy_histogram_non_funct_charge[energy_hist_i],
-                                energy_histogram_non_funct_hydro_neg[energy_hist_i],energy_histogram_non_funct_charge_neg[energy_hist_i]);
-                        energy_cum += energy_interval;
-                        energy_hist_i++;
-                    }
-                    
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-                    ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                
-                    for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-                        // bmode mirror rotate
-                        GetSingleSurfaceAA(aaseq_face_hub, aaseq_pp, protein_structid[interaction_partners[int_i][0]], interaction_surfaces[int_i][0],interaction_bmode[int_i],1,0);
-                        GetSingleSurfaceAA(aaseq_face_par, aaseq_pp, protein_structid[interaction_partners[int_i][1]], interaction_surfaces[int_i][1],interaction_bmode[int_i],0,1);
-                        
-                        
-                        NucSeqToAASeq(int_genome+interaction_partners[int_i][0]*NUCSEQLEN,NUCSEQLEN,aaseq_pp);
-                        NucSeqToAASeq(int_genome+interaction_partners[int_i][1]*NUCSEQLEN,NUCSEQLEN,aaseq2_pp);
-
-                        
-                        //GetDoubleSurfaceAA(int *seq1, int struct1, int *seq2, int struct2, int bmode, int *surface1, int *surface2);
-                        GetDoubleSurfaceAA(aaseq_pp, protein_structid[interaction_partners[int_i][0]], aaseq2_pp, protein_structid[interaction_partners[int_i][1]], interaction_bmode[int_i], aaseq_face_hub, aaseq_face_par);
-                        
-                        
-                        
-                        ConvertAAtoCharge(aaseq_face_hub, chargeseq_face_hub, AASURFACELEN);
-                        ConvertAAtoCharge(aaseq_face_par, chargeseq_face_par, AASURFACELEN);
-                        
-//                        //control:
-//                        printf("hub seq\n");
-//                        for (iii=0;iii<AASURFACELEN;iii++){
-//                            printf("%d %d\n",aaseq_face_hub[iii],chargeseq_face_hub[iii]);
-//                        }
-                        
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            inter_surface_charge[int_i][0][iii] = chargeseq_face_hub[iii];
-                            inter_surface_charge[int_i][1][iii] = chargeseq_face_par[iii];
-                        }
-                        
-                        ConvertAAtoAVIL(aaseq_face_hub, chargeseq_face_hub, AASURFACELEN);
-                        ConvertAAtoAVIL(aaseq_face_par, chargeseq_face_par, AASURFACELEN);
-
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            inter_surface_hydro_avil[int_i][0][iii] = chargeseq_face_hub[iii];
-                            inter_surface_hydro_avil[int_i][1][iii] = chargeseq_face_par[iii];
-                        }
-
-                        
-                        ConvertAAtoHydro(aaseq_face_hub, chargeseq_face_hub, AASURFACELEN);
-                        ConvertAAtoHydro(aaseq_face_par, chargeseq_face_par, AASURFACELEN);
-                        
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            inter_surface_hydro[int_i][0][iii] = chargeseq_face_hub[iii];
-                            inter_surface_hydro[int_i][1][iii] = chargeseq_face_par[iii];
-                        }
-
-                        
-                    }
-                    
-                    //fprintf(out42, "%d %d\n", generation_pp, generation_pp);
-                    for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-                        fprintf(out42, "%f %f ", interaction_energy[int_i], interaction_energy_charge[int_i]);
-                        
-                        
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            fprintf(out42, "%d ", inter_surface_charge[int_i][0][iii]);
-                        }
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            fprintf(out42, "%d ", inter_surface_charge[int_i][1][iii]);
-                        }
-                        
-                        fprintf(out42,"\n");
-                    }
-                    fprintf(out42,"\n");
-                    
-                    //fprintf(out43, "%d %d\n", generation_pp, generation_pp);
-                    for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-                        fprintf(out43, "%f %f ", interaction_energy[int_i],interaction_energy_hydro[int_i]);
-                        
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            fprintf(out43, "%d ", inter_surface_hydro_avil[int_i][0][iii]);
-                        }
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            fprintf(out43, "%d ", inter_surface_hydro_avil[int_i][1][iii]);
-                        }
-                        
-                        fprintf(out43,"\n");
-                    }
-                    fprintf(out43,"\n");
-                    
-                    //fprintf(out43, "%d %d\n", generation_pp, generation_pp);
-                    for(int_i=0;int_i<curr_MAXPPIS;int_i++){
-                        fprintf(out44, "%f ", interaction_energy[int_i]);
-                        
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            fprintf(out44, "%d ", inter_surface_hydro[int_i][0][iii]);
-                        }
-                        for (iii=0;iii<AASURFACELEN;iii++){
-                            fprintf(out44, "%d ", inter_surface_hydro[int_i][1][iii]);
-                        }
-                        
-                        fprintf(out44,"\n");
-                    }
-                    fprintf(out44,"\n");
-                    
-                    
-                    exit(0);
-                }
-                
-                                
-                
-                
-                
-//                //OP TO DO, define a new function with pre defined bmode?
-//                double GetBindingK(int *seq1, int struct1, int *seq2, int struct2, double T){
-//                    int face1, face2, rotate;
-//                    int k, surfacetmp[9],surface1[9], surface2[9];
-//                    double e, z=0, emin=1e10;
-//                    
-//                    for(face1=0;face1<6;face1++)
-//                    {
-//                        for(k=0; k<9; k++) surfacetmp[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
-//                        MirrorWall(surface1, surfacetmp);
-//                        for(face2=0;face2<6;face2++)
-//                            for(rotate=0;rotate<4;rotate++)
-//                            {
-//                                e=0;
-//                                for(k=0; k<9; k++) surface2[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-//                                for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
-//                                z+=exp(-e/T);
-//                                if (e<emin) emin=e;
-//                            }
-//                    }
-//                    
-//                    //if(z<1.0e-12) { fprintf(stderr,"Error!!! Partition Function z = %8.3lf\n", z); exit(1); }
-//                    
-//                    return z;
-//                }
-
-                
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-                ////////////////////////////////////////////////////////////////////////////////////////////////////
-                
-                
-                for(gi=0;gi<curr_MAXGENES;gi++){
-                    NucSeqToAASeq(int_genome+gi*NUCSEQLEN,NUCSEQLEN,aaseq_pp);
-                    
-//                    for (pppi=0;pppi<AASEQLEN;pppi++){
-//                        printf("%d ", aaseq_pp[pppi]);
-//                    }
-//                    printf("\n\n");
-                    
-                    for(fi=0;fi<6;fi++){
-                        GetSingleSurfaceAA(aaseq_face, aaseq_pp, protein_structid[gi], fi,0,0,0);
-                        
-//                        for (pppi=0;pppi<AASURFACELEN;pppi++){
-//                            printf("%d ", aaseq_face[pppi]);
-//                        }
-//                        printf("\n\n");
-                        
-                        
-                        //fprintf(stdout,"aaseq_face SEQ : %d\n", aaseq_face[0]);fflush(stdout);
-                        surface_frac_hydro[gi][fi] = GetFracHydrophobicity_avil(aaseq_face, AASURFACELEN);
-                        surface_frac_charge[gi][fi] = GetFracCharge(aaseq_face, AASURFACELEN);
-                        surface_net_charge[gi][fi] = GetNetCharge(aaseq_face, AASURFACELEN);
-                        surface_pos_charge[gi][fi] = GetPosCharge(aaseq_face, AASURFACELEN);
-                        surface_neg_charge[gi][fi] = GetNegCharge(aaseq_face, AASURFACELEN);
-                    }
-                }
-                
-                //exit(0);
-                
-                for(gi=0;gi<curr_MAXGENES;gi++){
-                    
-                    int_surface_frac_hydro[gi] = 0.0;
-                    int_surface_frac_charge[gi] = 0.0;
-                    int_surface_net_charge[gi] = 0.0;
-                    int_surface_pos_charge[gi] = 0.0;
-                    int_surface_neg_charge[gi] = 0.0;
-                    
-                    non_int_surface_frac_hydro[gi] = 0.0;
-                    non_int_surface_frac_charge[gi] = 0.0;
-                    non_int_surface_net_charge[gi] = 0.0;
-                    non_int_surface_pos_charge[gi] = 0.0;
-                    non_int_surface_neg_charge[gi] = 0.0;
-
-                    
-                    
-                    int_surface_counter[gi]=0;
-                    for(fi=0;fi<6;fi++){
-                        if (protein_interacting_faced[gi][fi]==1){
-                            int_surface_frac_hydro[gi] += surface_frac_hydro[gi][fi];
-                            int_surface_frac_charge[gi] += surface_frac_charge[gi][fi];
-                            int_surface_net_charge[gi] += surface_net_charge[gi][fi];
-                            int_surface_pos_charge[gi] += surface_pos_charge[gi][fi];
-                            int_surface_neg_charge[gi] += surface_neg_charge[gi][fi];
-                            int_surface_counter[gi] ++; 
-                        }
-                        else {
-                            non_int_surface_frac_hydro[gi] += surface_frac_hydro[gi][fi];
-                            non_int_surface_frac_charge[gi] += surface_frac_charge[gi][fi];
-                            non_int_surface_net_charge[gi] += surface_net_charge[gi][fi];
-                            non_int_surface_pos_charge[gi] += surface_pos_charge[gi][fi];
-                            non_int_surface_neg_charge[gi] += surface_neg_charge[gi][fi];
-                        }
-                    }
-                    
-                    if (int_surface_counter[gi]>0) {
-                        
-                        int_surface_frac_hydro[gi] /=(double) int_surface_counter[gi];
-                        int_surface_frac_charge[gi] /=(double) int_surface_counter[gi];
-                        int_surface_net_charge[gi] /=(double) int_surface_counter[gi];
-                        int_surface_pos_charge[gi] /=(double) int_surface_counter[gi];
-                        int_surface_neg_charge[gi] /=(double) int_surface_counter[gi];
-                        
-                    }
-                    
-                    if ((6-int_surface_counter[gi])>0) {
-                        
-                        non_int_surface_frac_hydro[gi] /=(double) (6-int_surface_counter[gi]);
-                        non_int_surface_frac_charge[gi] /=(double) (6-int_surface_counter[gi]);
-                        non_int_surface_net_charge[gi] /=(double) (6-int_surface_counter[gi]);
-                        non_int_surface_pos_charge[gi] /=(double) (6-int_surface_counter[gi]);
-                        non_int_surface_neg_charge[gi] /=(double) (6-int_surface_counter[gi]);
-                        
-                    }
-           
-                }//gi
-                
-                fprintf(out40, "%d %d", generation_pp, generation_pp);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", int_surface_frac_hydro[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", int_surface_frac_charge[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", int_surface_net_charge[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", int_surface_pos_charge[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", int_surface_neg_charge[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", non_int_surface_frac_hydro[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", non_int_surface_frac_charge[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", non_int_surface_net_charge[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", non_int_surface_pos_charge[gi]);
-                for (gi=0; gi<curr_MAXGENES; gi++) fprintf(out40, " %E", non_int_surface_neg_charge[gi]);
-                fprintf(out40,"\n");
-                
-                fprintf(out50, "%d %d 0 0 0 0\n", generation_pp, generation_pp);
-                for(gi=0;gi<curr_MAXGENES;gi++){
-                    for(fi=0;fi<6;fi++){
-                        fprintf(out50, "%d ", protein_interacting_faced[gi][fi]);
-                    }
-                    fprintf(out50,"\n");
-                }
-                
-                for(gi=0;gi<curr_MAXGENES;gi++){
-                    for(fi=0;fi<6;fi++){fprintf(out50, "%E ", surface_frac_hydro[gi][fi]);}fprintf(out50,"\n");
-                }
-
-                for(gi=0;gi<curr_MAXGENES;gi++){
-                    for(fi=0;fi<6;fi++){fprintf(out50, "%E ", surface_frac_charge[gi][fi]);}fprintf(out50,"\n");
-                }
-
-                for(gi=0;gi<curr_MAXGENES;gi++){
-                    for(fi=0;fi<6;fi++){fprintf(out50, "%E ", surface_net_charge[gi][fi]);}fprintf(out50,"\n");
-                }
-
-
-                
-            }//end first clone
-            
-        }
-        fscanf(out4, ";\n\n");
-        
-        //eofReached = (fscanf(out4, ";\n\n")==EOF);
-        
-                 
-        //printf("beep END\n");fflush(stdout);
-        
-       // exit(0);
-    }
-    
-    
-
-}
-
-
-
-
-
-/***********************************************************************************************************
- **********************************************************************************************************/
 void PrepareOutput(){
     int ii, who, m, jj;
     
@@ -1036,8 +358,12 @@ void PrepareOutput(){
  **********************************************************************************************************/
 void WriteConfig(){
     int i, j, who;
-    
-    FILE *fp=fopen(FILE_CONFIG, "w");
+	char rootdir[100];
+	char fopbuf[100]; 
+   
+    sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/%s",myParam.targetname);
+    sprintf(fopbuf,"%s/_config.txt", rootdir);
+    FILE *fp=fopen(fopbuf, "w");
     
     // variables from evo-cell
     fprintf(fp,"%d %d %d %d %d %d %d %d\n", divisioncycle, lastdecimtime, orgcount, mutatorcount, generation, speciesSizeTotal, domi_species, nOrgDB);
@@ -1486,223 +812,67 @@ void ReadConfig(){
 /***********************************************************************************************************
  **********************************************************************************************************/
 void PrintOutput(){
-    int ii, jj;
+	int ii, jj;
 
-    
-    //int aaseq[AASEQLEN];
-    
-    //char fopbuf[100];
-    
-  //  printf("gen %d orgcount %d\n", divisioncycle, orgcount);
-    
-    //printf("test\n");
-    
-    fprintf(out3, "%6d %E %6.3lf %5d %5d %9.6lf %8.5lf ", divisioncycle, TIME, myParam.Tenv, orgcount, nOrgDB, mean.birthrate, (double) domi_species/orgcount);
-    fprintf(out3, "%10.7lf %8.5lf %8.5lf", mean.Gij[4], (double) mutatorcount/orgcount, mean.mutrate);
-    fprintf(out3, "\n");
-    
-    //printf("beep1\n");
-    
-    fprintf(out5, "%6d %E", divisioncycle, TIME);
-    for(ii=0;ii<curr_MAXGENES;ii++) fprintf(out5," %8.5f", (float) mutatororigin[ii]/orgcount);
-    fprintf(out5, "\n");
-    
-    //printf("beep2\n");
-    
-    
-    //fprintf(out1,"%d %E %lf %d",divisioncycle, TIME, myParam.Tenv, orgcount);
-    //fprintf(out1," %lf %lf", mean.mutcount, mean.birthrate);
-    //fprintf(out1,"\n");
-    fprintf(out2,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out2, " %E", mean.C[ii]);
-    for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out2, " %E", mean.F[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out2, " %.10E", mean.pnat[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out2, " %E", mean.hydro[ii]);
-    fprintf(out2,"\n");
-    
-    
-    //printf("beep3\n");
-    
-    //chaps
-    fprintf(out12,"%d %E",divisioncycle, TIME);
-    fprintf(out12, " %E", mean.C[curr_MAXGENES]);
-    fprintf(out12, " %E", mean.F[2*curr_MAXGENES]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out12, " %E", mean.Nch[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out12, " %E", mean.Kc[ii]);
-    fprintf(out12,"\n");
-    
-    //printf("beep4\n");
-    
-    
-    fprintf(out6,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out6, " %E", mean.pint[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out6, " %E", mean.Gij[ii]);
-    for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out6, " %E", mean.K[0][ii+1]); //OP, think about
-    fprintf(out6,"\n");
-    
-    //printf("beep5\n");
-    
-    fprintf(out7,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out7, " %E", mean.nonsynmut[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out7, " %E", mean.synmut[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out7, " %E", mean.tot_mut[ii]);
-    fprintf(out7,"\n");
-    
-    //printf("beep6\n");
-    
-    
-    //nsilog:
-    fprintf(out10,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out10, " %E", mean.nsi[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out10, " %E", mean.si[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out10, " %E", mean.nsi2[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out10, " %E", mean.si2[ii]);
-    fprintf(out10,"\n");
-    
-    //printf("beep7\n");
-    
-    //seq prop:
-    fprintf(out11,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out11, " %E", mean.hydro[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out11, " %E", mean.frachydro[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out11, " %E", mean.frachydro_avil[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out11, " %E", mean.netcharge[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out11, " %E", mean.poscharge[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out11, " %E", mean.negcharge[ii]);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out11, " %E", mean.fraccharge[ii]);
-    fprintf(out11,"\n");
-
-    
-    //seq surfaces prop:
-    fprintf(out15,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out15, " %E", mean.hydro_s_hub[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out15, " %E", mean.frachydro_s_hub[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out15, " %E", mean.frachydro_avil_s_hub[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out15, " %E", mean.netcharge_s_hub[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out15, " %E", mean.poscharge_s_hub[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out15, " %E", mean.negcharge_s_hub[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out15, " %E", mean.fraccharge_s_hub[ii]);
-    fprintf(out15,"\n");
-    
-    fprintf(out16,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out16, " %E", mean.hydro_s_partner[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out16, " %E", mean.frachydro_s_partner[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out16, " %E", mean.frachydro_avil_s_partner[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out16, " %E", mean.netcharge_s_partner[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out16, " %E", mean.poscharge_s_partner[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out16, " %E", mean.negcharge_s_partner[ii]);
-    for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out16, " %E", mean.fraccharge_s_partner[ii]);
-    fprintf(out16,"\n");
-    
-    // print out entropy
-    fprintf(out8,"%d %E",divisioncycle, TIME);
-    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out8, " %.10lE", entropy_sum[ii]);
-    fprintf(out8, " %.10lE", entropy_sumtot);
-    fprintf(out8,"\n");
-    
-    //printf("beep8\n");
-    
-    
-    // seqlog printout
-    //printf("myParam->seqlogcycle=%d\n",myParam.seqlogcycle);
-    
-    if(divisioncycle%myParam.seqlogcycle == 0) {
-        //printf("beep8.-1\n");
-        //sprintf(fopbuf,"seqlog-%s.dat.gz", myParam.targetname);
-        //printf("beep8.0\n");
-        //zout4=gzopen(fopbuf,"a");
-        RankSpeciesSizeDB(sizeRank, nOrgDB);
-        //gzprintf(zout4, "%6d %4d %4d\n", divisioncycle, nOrgDB, orgcount);
-        fprintf(out4, "%6d %4d %4d\n", divisioncycle, nOrgDB, orgcount);
-        speciesSizeTotal=0;
-        //printf("beep8.1\n");
+	RankSpeciesSizeDB(sizeRank, nOrgDB);
         
-        for(ii=0;ii<nOrgDB;ii++) {
-            //gzprintf(zout4, "%4d %4d %1d ", sizeRank[ii], myOrgDB[sizeRank[ii]].count, myOrgDB[sizeRank[ii]].genecount);
-            fprintf(out4, "%4d %4d %1d ", sizeRank[ii], myOrgDB[sizeRank[ii]].count, myOrgDB[sizeRank[ii]].genecount);
-            PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[ii]].genome, myOrgDB[sizeRank[ii]].genecount*NUCSEQLEN);
-            //gzprintf(zout4, "%s ", seqbuf);
-            fprintf(out4, "%s ", seqbuf);
-            for(jj=0;jj<curr_MAXGENES;jj++){
-                //gzprintf(zout4, "%5d ", myOrgDB[sizeRank[ii]].structid[jj]);
-                fprintf(out4, "%5d ", myOrgDB[sizeRank[ii]].structid[jj]);
-
-            }
-            speciesSizeTotal += myOrgDB[sizeRank[ii]].count;
-            //gzprintf(zout4, "\n");
-            fprintf(out4, "\n");
-        }
-        //gzprintf(zout4, ";\n\n");
-        //gzclose(zout4);
-        fprintf(out4, ";\n\n");
-        //fclose(zout4);
-        //printf("beep8.2\n");
+	fprintf(out1,"%08d %d",divisioncycle, orgcount);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %E", mean.C[ii]);
+	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out1, " %E", mean.F[ii]);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %.10E", mean.pnat[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %E", mean.pint[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %E", mean.Gij[ii]);
         
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %06d", myOrgDB[sizeRank[0]].structid[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %03d", myOrgDB[sizeRank[0]].bmode[ii]);
         
-        fprintf(out1,"%08d %d",divisioncycle, orgcount);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %E", mean.C[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out1, " %E", mean.F[ii]);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %.10E", mean.pnat[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %E", mean.pint[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %E", mean.Gij[ii]);
+	int aaseq_surface_hub[AASURFACELEN], aaseq_surface_partner[AASURFACELEN], s_i, hub_i, par_i;
         
-        
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %06d", myOrgDB[sizeRank[0]].structid[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out1, " %03d", myOrgDB[sizeRank[0]].bmode[ii]);
-        
-        
-        int aaseq_surface_hub[AASURFACELEN], aaseq_surface_partner[AASURFACELEN], s_i, hub_i, par_i;
-        
-        for (ii=0;ii<curr_MAXPPIS; ii++){
-            hub_i=0; par_i=ii+1;
-            GetSurfaceAAPositions(myOrgDB[sizeRank[0]].structid[hub_i], myOrgDB[sizeRank[0]].structid[par_i], myOrgDB[sizeRank[0]].bmode[ii],
+	for (ii=0;ii<curr_MAXPPIS; ii++){
+		hub_i=0; par_i=ii+1;
+		GetSurfaceAAPositions(myOrgDB[sizeRank[0]].structid[hub_i], myOrgDB[sizeRank[0]].structid[par_i], myOrgDB[sizeRank[0]].bmode[ii],
                                   aaseq_surface_hub, aaseq_surface_partner);
             
-            for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out1, " %02d", aaseq_surface_hub[s_i]);
-            for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out1, " %02d", aaseq_surface_partner[s_i]);
-            
-        }
+		for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out1, " %02d", aaseq_surface_hub[s_i]);	
+		for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out1, " %02d", aaseq_surface_partner[s_i]);
+	}
         
+	PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
+	fprintf(out1, " %s ", seqbuf);
+	fprintf(out1,"\n");
+
         
-        PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
-        fprintf(out1, " %s ", seqbuf);
-        fprintf(out1,"\n");
+	fprintf(out22,"%.3E",TIME);
+    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.C[ii]);
+	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %.3E", mean.F[ii]);
+	for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out22, " %.3E", mean.nF[ii][jj]);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.pnat[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.pint[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.Gij[ii]);
+	fprintf(out22,"\n");
         
-        fprintf(out22,"%.3E",TIME);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.C[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %.3E", mean.F[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out22, " %.3E", mean.nF[ii][jj]);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.pnat[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.pint[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.Gij[ii]);
-        fprintf(out22,"\n");
-        
-        fprintf(out23,"%.3E",TIME);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.C[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out23, " %.3E", var.F[ii]);
-        for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out23, " %.3E", var.nF[ii][jj]);
-        for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.pnat[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.pint[ii]);
-        for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.Gij[ii]);
-        fprintf(out23,"\n");
+	fprintf(out23," %.3E",(double) divisioncycle);
+	fprintf(out23,"%.3E",TIME);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.C[ii]);
+	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out23, " %.3E", var.F[ii]);
+	for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out23, " %.3E", var.nF[ii][jj]);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.pnat[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.pint[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.Gij[ii]);
+	fprintf(out23," %.3E",(double) domi_species/orgcount);
+	fprintf(out23,"\n");
         
        
-        fprintf(out24,"%.3E",TIME);
-        fprintf(out24," %.3E",(double) divisioncycle);
-        fprintf(out24," %.3E",(double) domi_species/orgcount);
-	    PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
-        fprintf(out24, " %s", seqbuf);
-        fprintf(out24,"\n");
-      
-    }
-    
-    //printf("beep9\n");
-    
+	fprintf(out24," %.3E",(double) divisioncycle);
+	PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
+	fprintf(out24, " %s", seqbuf);
+	fprintf(out24,"\n");
 }
 
 void PrintHeaders(FILE *out){
 	int width=9;   	
 
+	fprintf(out, "%*s ",width,"Dcycle");
 	fprintf(out, "%*s ",width,"Time");
 	fprintf(out, "%*s ",width,"C1");
 	fprintf(out, "%*s ",width,"C2");
@@ -1715,16 +885,15 @@ void PrintHeaders(FILE *out){
 	fprintf(out, "%*s ",width,"P2nat");
 	fprintf(out, "%*s ",width,"ppi");
 	fprintf(out, "%*s\n",width,"dimer");
- 
+	fprintf(out, "%*s ",width,"Frac");
+
 }
 
 
 void PrintHeaders1(FILE *out){
 	int width=9;   	
 	
-	fprintf(out, "%*s ",width,"Time");
 	fprintf(out, "%*s ",width,"Dcycle");
-	fprintf(out, "%*s ",width,"Frac");
 	fprintf(out, "%*s\n",width,"RNA");
 }
 /***********************************************************************************************************
@@ -1732,81 +901,35 @@ void PrintHeaders1(FILE *out){
 void Openfiles(){
     char fopbuf[100];
     char filetype_buf[100];
- 
+    char rootdir[100];
+
     if (RUN_BASED_ON_CONFIG == 0){
         sprintf(filetype_buf,"w");
     }
     else {
         sprintf(filetype_buf,"a");
     }
-    sprintf(fopbuf,"init_vals-%s.dat", myParam.targetname);
-    
-    finitvals=fopen(fopbuf,filetype_buf);
-    fprintf(finitvals, "%s ", myParam.targetname);
-    fprintf(finitvals, "%d ", myParam.seed);
-    fprintf(finitvals, "%d ", myParam.maxdivcycle);
-    fprintf(finitvals, "%d ", curr_MAXGENES);
-    fprintf(finitvals, "%d ", hub_ID);
-    fprintf(finitvals, "%d ", allow_fold_change);
-    fprintf(finitvals, "%d ", allow_gene_exp);
-    fprintf(finitvals, "%d ", allow_unfolded_states);
-    fclose(finitvals);
-    
-    //printf("beep 1\n"); exit(0);
-    
-    sprintf(fopbuf,"initial-%s.dat", myParam.targetname);
+   
+    sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/%s",myParam.targetname);
+    sprintf(fopbuf,"%s/initial.dat", rootdir);
     out1=fopen(fopbuf,filetype_buf);
     PrintInitialCondition(out1,&myParam);
     fclose(out1);
     
-    sprintf(fopbuf,"basiclog-%s.dat", myParam.targetname);
+    sprintf(fopbuf,"%s/basiclog.dat", rootdir);
     out1=fopen(fopbuf,filetype_buf);
-    sprintf(fopbuf,"statlog-%s.dat", myParam.targetname);
-    out2=fopen(fopbuf,filetype_buf);
     
-    sprintf(fopbuf,"statlog_chaps-%s.dat", myParam.targetname);
-    out12=fopen(fopbuf,filetype_buf);
-    
-    sprintf(fopbuf,"plotlog-%s.dat", myParam.targetname);
-    out3=fopen(fopbuf,filetype_buf);
-    
-    sprintf(fopbuf,"mutlog-%s.dat", myParam.targetname);
-    out5=fopen(fopbuf,filetype_buf);
-    sprintf(fopbuf,"problog-%s.dat", myParam.targetname);
-    out6=fopen(fopbuf,filetype_buf);
-    sprintf(fopbuf,"ratelog-%s.dat", myParam.targetname);
-    out7=fopen(fopbuf,filetype_buf);
-    sprintf(fopbuf,"entlog-%s.dat", myParam.targetname);
-    out8=fopen(fopbuf,filetype_buf);
-    sprintf(fopbuf,"nsilog-%s.dat", myParam.targetname);
-    out10=fopen(fopbuf,filetype_buf);
-    
-    sprintf(fopbuf,"seqproplog-%s.dat", myParam.targetname);
-    out11=fopen(fopbuf,filetype_buf);
-    
-    sprintf(fopbuf,"seqproplog_surfaces_hub-%s.dat", myParam.targetname);
-    out15=fopen(fopbuf,filetype_buf);
-    
-    sprintf(fopbuf,"seqproplog_surfaces_par-%s.dat", myParam.targetname);
-    out16=fopen(fopbuf,filetype_buf);
-    
-    //sprintf(fopbuf,"seqlog-%s.dat.gz", myParam.targetname);
-    //zout4=gzopen(fopbuf,filetype_buf);
-    
-    sprintf(fopbuf,"seqlog-%s.dat", myParam.targetname);
-    out4=fopen(fopbuf,filetype_buf);
-   
-    sprintf(fopbuf,"phenotype.avg.dat");
+    sprintf(fopbuf,"%s/phenotype.avg.dat", rootdir);
     out22=fopen(fopbuf,filetype_buf);
  	fprintf(out22,"Mean\n");
 	PrintHeaders(out22);
 
-	sprintf(fopbuf,"phenotype.var.dat");
+	sprintf(fopbuf,"%s/phenotype.var.dat", rootdir);
     out23=fopen(fopbuf,filetype_buf);
  	fprintf(out23,"Variance\n");
 	PrintHeaders(out23);
 
-	sprintf(fopbuf,"genotype.dat");
+	sprintf(fopbuf,"%s/genotype.dat", rootdir);
 	out24=fopen(fopbuf,filetype_buf);
  	fprintf(out24,"Absolute\n");
 	PrintHeaders1(out24);
@@ -1815,21 +938,19 @@ void Openfiles(){
 /***********************************************************************************************************
  **********************************************************************************************************/
 void Flushfiles(){
-    fflush(out1); fflush(out2); fflush(out3); fflush(out5); fflush(out6); fflush(out7); fflush(out8);
-    fflush(out10); fflush(out11); fflush(out12); fflush(error_op); fflush(stdout); fflush(it_solver);
-    fflush(out15); fflush(out16);
-    fflush(out4);
+    fflush(out1);
+    fflush(error_op); fflush(stdout);
+	fflush(it_solver);
 	fflush(out22); fflush(out23); fflush(out24);
 }
 
 /***********************************************************************************************************
  **********************************************************************************************************/
 void Closefiles(){
-    fclose(out1); fclose(out2); fclose(out3); fclose(out5); fclose(out6); fclose(out10); fclose(out11); fclose(out12);
-    fclose(out7);fclose(error_op);
-    fclose(it_solver); fclose(out8);
-    fclose(out15); fclose(out16);
-    fclose(out4);
+    fclose(out1);
+    fclose(error_op);
+	fclose(it_solver);
+	fclose(out22); fclose(out23); fclose(out24);
 }
 
 
@@ -2195,191 +1316,3 @@ void GetVarOrg(organism *var, int orgcount){
 	}
 
 }
-
-
-/***********************************************************************************************************
- UNUSED!!
- **********************************************************************************************************/
-
-//int seq_entropy(char **seq, int N, float *entropy)
-//// calculates entropy at each position of an amino acid
-//// based on distribution among organisms
-//{
-//    int i, j;
-//    float f;
-//
-//    for(j=0;j<AASEQLEN;j++)
-//        for(i=0;i<20;i++)
-//            aamat[j][i]=0;
-//
-//    for(i=0;i<N;i++){   // N: number of copies of amino acid
-//        //PrintCharNucCodeSequence(pcharbuf, seq[i], NUCSEQLEN);
-//        //fprintf(stdout,"%6d %s\n", i, pcharbuf);
-//        CharNucSeqToAASeq(seq[i], NUCSEQLEN, aaseq);
-//        //PrintAACodeSequence(pcharbuf2, aaseq, AASEQLEN);
-//        //fprintf(stdout,"%6d %s\n", i, pcharbuf2);
-//        for(j=0;j<AASEQLEN;j++){
-//            aamat[j][aaseq[j]]++;
-//            // counts number of each amino acid at each position
-//        }
-//    }
-//
-//    for(j=0;j<AASEQLEN;j++){
-//        entropy[j]=0.0;
-//        //fprintf(stdout, "%4d :", j);
-//        for(i=0;i<20;i++){
-//            if(aamat[j][i] > 0) {
-//                f = (float) aamat[j][i]/N;
-//                entropy[j]-= f*logf(f);
-//            } else {
-//                f =0.0;
-//            }
-//            //fprintf(stdout, " %8.3f", f);
-//        }
-//        //fprintf(stdout,"\n");
-//    }
-//    return 0;
-//}
-//
-//
-//int DumpDB(parameter *myParam, int divisioncycle) {
-//
-//    int i, j, k, ii;
-//    char filename[200], buf[200];
-//    FILE *fp;
-//
-//    sprintf(filename, "BindingDB-%s-t%d.dat", myParam->targetname, divisioncycle);
-//    fp=fopen(filename, "w");
-//    for(i=0;i<nOrgDB;i++) {
-//        fprintf(fp, "OrgDB %5d RepOrg %5d Count %5d pint12 = %8.3f \n", i, myOrgDB[i].reporg, myOrgDB[i].count, myOrgDB[i].pint12);
-//        CharNucSeqToAASeq(myOrgDB[i].genome+NUCSEQLEN, NUCSEQLEN, aaseq);
-//        CharNucSeqToAASeq(myOrgDB[i].genome+NUCSEQLEN*2, NUCSEQLEN, aaseq2);
-//        fprintf(fp, "%6d", myOrgDB[i].structid[1]);
-//        for(k=0;k<9;k++) fprintf(fp, " %3d (%1c)", myOrgDB[i].binding[0][k], aacode[aaseq[myOrgDB[i].binding[0][k]]]);
-//        fprintf(fp, "\n");
-//        fprintf(fp, "%6d", myOrgDB[i].structid[2]);
-//        for(k=0;k<9;k++) fprintf(fp, " %3d (%1c)", myOrgDB[i].binding[1][k], aacode[aaseq2[myOrgDB[i].binding[1][k]]]);
-//        fprintf(fp, "\n");
-//
-//        /*
-//         CharNucSeqToAASeq(myOrgDB[i].genome+NUCSEQLEN*3, NUCSEQLEN, aaseq);
-//         CharNucSeqToAASeq(myOrgDB[i].genome+NUCSEQLEN*4, NUCSEQLEN, aaseq2);
-//         fprintf(fp, "%6d", myOrgDB[i].structid[3]);
-//         for(k=0;k<9;k++) fprintf(fp, " %3d (%1c)", myOrgDB[i].binding[2][k], aacode[aaseq[myOrgDB[i].binding[2][k]]]);
-//         fprintf(fp, "\n");
-//         fprintf(fp, "%6d", myOrgDB[i].structid[4]);
-//         for(k=0;k<9;k++) fprintf(fp, " %3d (%1c)", myOrgDB[i].binding[3][k], aacode[aaseq2[myOrgDB[i].binding[3][k]]]);
-//         fprintf(fp, "\n");
-//         */
-//    }
-//    fclose(fp);
-//
-//
-//    for(ii=0;ii<MAXGENES;ii++) {
-//        k=0;
-//        for(i=0;i<nOrgDB;i++) {
-//            if(myOrgDB[i].count > 10) k++;
-//        }
-//        sprintf(filename,"SeqDB-%s-%d-t%d.dat", myParam->targetname, ii, divisioncycle);
-//        fp=fopen(filename, "w");
-//        fprintf(fp, "%d %d I\n\n", k, NUCSEQLEN);
-//        for(i=0;i<nOrgDB;i++) {
-//            if(myOrgDB[i].count > 10) fprintf(fp, "s%d.%d\n", i, myOrgDB[i].count);
-//        }
-//
-//        for(k=0;k<NUCSEQLEN/60;k++) {
-//            fprintf(fp,"%d\n",k*60+1);
-//            for(i=0;i<nOrgDB;i++) {
-//                if(myOrgDB[i].count > 10) {
-//                    PrintCharNucCodeSequence(buf, myOrgDB[i].genome+ii*NUCSEQLEN, NUCSEQLEN);
-//                    for(j=k*60;j<(k+1)*60;j++) {
-//                        fprintf(fp, "%c",buf[j]);
-//                        if(j%3==2) fprintf(fp, " ");
-//                    }
-//                    fprintf(fp,"\n");
-//                }
-//            }
-//        }
-//        if(NUCSEQLEN%60 != 0 ) {
-//            fprintf(fp,"%d\n",k*60+1);
-//            for(i=0;i<nOrgDB;i++) {
-//                if(myOrgDB[i].count > 10) {
-//                    PrintCharNucCodeSequence(buf, myOrgDB[i].genome+ii*NUCSEQLEN, NUCSEQLEN);
-//                    for(j=k*60;j<NUCSEQLEN;j++) {
-//                        fprintf(fp, "%c",buf[j]);
-//                        if(j%3==2) fprintf(fp, " ");
-//                    }
-//                    fprintf(fp,"\n");
-//                }
-//            }
-//        }
-//        fclose(fp);
-//    } // for(ii=0;
-//    return 0;
-//}
-//
-//int DumpProteome(char *filename){
-//    int who, ii;
-//    gzFile gzout1p;
-//    char buf[200];
-//    gzout1p = gzopen(filename, "w");
-//    for(who=0;who<MAXORGANISMS;who++) {
-//        if(myOrgstatus[who]!=S_ALIVE) continue;
-//        gzprintf(gzout1p,"ORG %d\t%d\t%d\t%d\t%f\t%f", who, myOrg[who].dob, myOrg[who].numkids, myOrg[who].generation, myOrg[who].mutcount, myOrg[who].pint[0]);
-//        for(ii=0;ii<MAXGENES*(MAXGENES-1)/2;ii++)  gzprintf(gzout1p,"\t%lf", myOrg[who].SeqID[ii]); // count 3
-//        gzprintf(gzout1p,"\n");
-//
-//        for(ii=0;ii<myOrg[who].genecount;ii++) {
-//            PrintCharNucCodeSequence(buf, myOrg[who].genome+ii*NUCSEQLEN, NUCSEQLEN);
-//            gzprintf(gzout1p,"%d\t%d\t%d\t%f\t%f\t%f\t%f\t%s\n",who,ii,myOrg[who].structid[ii], myOrg[who].pnat[ii],myOrg[who].C[ii], myOrg[who].F[ii], myOrg[who].hydro[ii], buf);
-//        }
-//    }
-//    gzclose(gzout1p);
-//    //ResetGeneDB();
-//
-//    return 0;
-//}
-//
-//// This is a trimmed-down version of ResetOrgDB used to recalculate dominant species and species number information
-//int RecountOrgDB(int divisioncycle){
-//    int i, j, genediff, who;
-//
-//    nOrgDB=0;
-//    domi_species=0;
-//
-//    for(who=0;who<MAXORGANISMS;who++) {
-//        if (myOrgstatus[who]!=S_ALIVE) continue;
-//
-//        for(i=0;i<nOrgDB;i++) {
-//            if(myOrgDB[i].genecount != myOrg[who].genecount) continue;
-//
-//            genediff=0;
-//            for(j=0;j<myOrg[who].genecount*NUCSEQLEN;j++) {
-//                // comparing if genome of who matches any genome in the database
-//                genediff+=(myOrgDB[i].genome[j]-myOrg[who].genome[j])*(myOrg[i].genome[j]-myOrg[who].genome[j]);
-//            }
-//            if(!genediff) break;
-//        }
-//        if(i == nOrgDB) {
-//            // if the genome does not match any previous entry, a new space is
-//            // made for it in OrgDB
-//            myOrgDB[i].genecount = myOrg[who].genecount;
-//            for(j=0;j<myOrg[who].genecount*NUCSEQLEN;j++) myOrgDB[i].genome[j]=myOrg[who].genome[j];
-//
-//            myOrgDB[i].reporg = who;
-//            myOrgDB[i].count = 1;
-//            //      myOrgDB[i].meanmutrate = myOrg[who].mutrate; //mod myOrgDBMut
-//            if(myOrgDB[i].count > domi_species) domi_species = myOrgDB[i].count;
-//            nOrgDB++;
-//        } else {
-//            myOrgDB[i].count++;
-//            //      myOrgDB[i].meanmutrate += myOrg[who].mutrate; //mod myOrgDBMut
-//            if(myOrgDB[i].count > domi_species) domi_species = myOrgDB[i].count;
-//        }
-//    } // for(who=0;
-//    //  for(i=0;i<nOrgDB;i++) myOrgDB[i].meanmutrate /= myOrgDB[i].count; //mod myOrgDBMut
-//
-//    return 0;
-//}
-//
-//
