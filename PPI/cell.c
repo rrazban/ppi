@@ -185,9 +185,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         if (myParam->screenoutcycle == 0) myParam->screenoutcycle = 1;
         //myParam->maxdivcycle = 4000;
         myParam->speciessizefactor = 0.8;
-        myParam->TLow = 0.85;
-        myParam->THigh = 1.0;
-        myParam->Tenv = 1.0; //myParam->TLow;
+        myParam->Tenv = 1.0; 
         myParam->pnatcutoff = 0.0;
         //myParam->tol = sqrt(dpmpar(1));
         myParam->mutrate[0] = 0.0001;
@@ -1219,10 +1217,6 @@ void PrintInitialCondition(FILE *out, parameter *myParam){
     fprintf(out, "Mut Thresh Factor : \t%6.4lf\n", myParam->mutthreshfac);
     fprintf(out, "Decim. Threshold : \t%d\n", myParam->decimthresh);
     fprintf(out, "Decim. To : \t\t%d\n", myParam->decimto);
-    fprintf(out, "Low Temperature : \t%f\n", myParam->TLow);
-    fprintf(out, "Low Temp Time : \t%d\n", myParam->timeLow);
-    fprintf(out, "High Temperature : \t%f\n", myParam->THigh);
-    fprintf(out, "High Temp Time : \t%d\n", myParam->timeHigh);
     fprintf(out, "------- Output Files -------\n");
     return;
 }

@@ -169,7 +169,6 @@ int main(int argc, char *argv[]){
             switch (ALGORITHM) {
                 case 0: //Muyoung
                     overflowflag = 0; count1=count2=0;
-                    //if(divisioncycle == myParam.timeLow+1) myParam.birthrate /= 10;
                     for(who=0; who<MAXORGANISMS; who++) {
                         if (myOrgstatus[who]==S_DEAD) continue;
                         if (myOrgstatus[who]==S_NEWBORN) continue;
@@ -371,8 +370,8 @@ void WriteConfig(){
     
     
     // variables from cell.h: myParam, myOrg
-    fprintf(fp,"%d %d %d %d %d %d %d %d %d %d %d %d %d %d\n",myParam.seed, myParam.startcode, myParam.orgcount, myParam.maxdivcycle, myParam.decimthresh, myParam.decimto, myParam.initpop, myParam.dumpcycle, myParam.printoutcycle, myParam.plotoutcycle, myParam.screenoutcycle, myParam.seqlogcycle, myParam.timeLow, myParam.timeHigh);
-    fprintf(fp,"%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n", myParam.Tenv, myParam.tol, myParam.TLow, myParam.THigh, myParam.birthrate, myParam.deathrate, myParam.expressrate, myParam.alpha, myParam.pnatcutoff, myParam.speciessizefactor, myParam.mutrate[0], myParam.mutrate[1], myParam.mutrate0, myParam.x0, myParam.b0, myParam.fixed_mutrate, myParam.mutthreshfac, myParam.mutthresh, myParam.bindindex); //19
+    fprintf(fp,"%d %d %d %d %d %d %d %d %d %d %d %d\n",myParam.seed, myParam.startcode, myParam.orgcount, myParam.maxdivcycle, myParam.decimthresh, myParam.decimto, myParam.initpop, myParam.dumpcycle, myParam.printoutcycle, myParam.plotoutcycle, myParam.screenoutcycle, myParam.seqlogcycle);
+    fprintf(fp,"%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f\n", myParam.Tenv, myParam.tol, myParam.birthrate, myParam.deathrate, myParam.expressrate, myParam.alpha, myParam.pnatcutoff, myParam.speciessizefactor, myParam.mutrate[0], myParam.mutrate[1], myParam.mutrate0, myParam.x0, myParam.b0, myParam.fixed_mutrate, myParam.mutthreshfac, myParam.mutthresh, myParam.bindindex); //19
     //fprintf(fp,"%s\n", myParam.input);
     fprintf(fp,"%s\n", myParam.targetname);
     
@@ -524,8 +523,8 @@ void ReadConfig(){
     FILE *fp;
     char  divisioncycle_s[100], lastdecimtime_s[100], orgcount_s[100], mutatorcount_s[100], generation_s[100],
     speciesSizeTotal_s[100], domi_species_s[100], nOrgDB_s[100], TIME_s[100];
-    char  seed_s[100], startcode_s[100], mp_orgcount_s[100], maxdivcycle_s[100], decimthresh_s[100], decimto_s[100], initpop_s[100], dumpcycle_s[100], printoutcycle_s[100], plotoutcycle_s[100], screenoutcycle_s[100], seqlogcycle_s[100], timeLow_s[100], timeHigh_s[100];
-    char Tenv_s[100], tol_s[100], TLow_s[100], THigh_s[100], birthrate_s[100], deathrate_s[100], expressrate_s[100], alpha_s[100], pnatcutoff_s[100], speciessizefactor_s[100], mutrate0_s[100], mutrate01_s[100], mutrate00_s[100], x0_s[100], b0_s[100], fixed_mutrate_s[100], mutthreshfac_s[100], mutthresh_s[100], bindindex_s[100];
+    char  seed_s[100], startcode_s[100], mp_orgcount_s[100], maxdivcycle_s[100], decimthresh_s[100], decimto_s[100], initpop_s[100], dumpcycle_s[100], printoutcycle_s[100], plotoutcycle_s[100], screenoutcycle_s[100], seqlogcycle_s[100];
+    char Tenv_s[100], tol_s[100], birthrate_s[100], deathrate_s[100], expressrate_s[100], alpha_s[100], pnatcutoff_s[100], speciessizefactor_s[100], mutrate0_s[100], mutrate01_s[100], mutrate00_s[100], x0_s[100], b0_s[100], fixed_mutrate_s[100], mutthreshfac_s[100], mutthresh_s[100], bindindex_s[100];
     //char targetname_s[500];
     char mutatororigin_i_s[100];
     char sizeRank_who_s[100], myOrgstatus_who_s[100];
@@ -571,7 +570,7 @@ void ReadConfig(){
         // variables from cell.h: myParam, myOrg
         
         
-        fscanf(fp,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",seed_s,  startcode_s,  mp_orgcount_s,  maxdivcycle_s,  decimthresh_s,  decimto_s,  initpop_s,  dumpcycle_s,  printoutcycle_s,  plotoutcycle_s,  screenoutcycle_s,  seqlogcycle_s,  timeLow_s,  timeHigh_s);
+        fscanf(fp,"%s %s %s %s %s %s %s %s %s %s %s %s\n",seed_s,  startcode_s,  mp_orgcount_s,  maxdivcycle_s,  decimthresh_s,  decimto_s,  initpop_s,  dumpcycle_s,  printoutcycle_s,  plotoutcycle_s,  screenoutcycle_s,  seqlogcycle_s);
         
         myParam.seed = atoi(seed_s);
         myParam.startcode = atoi(startcode_s);
@@ -585,17 +584,13 @@ void ReadConfig(){
         myParam.plotoutcycle = atoi(plotoutcycle_s);
         myParam.screenoutcycle = atoi(screenoutcycle_s);
         myParam.seqlogcycle = atoi(seqlogcycle_s);
-        myParam.timeLow = atoi(timeLow_s);
-        myParam.timeHigh = atoi(timeHigh_s);
         
         //exit(0);
         
-        fscanf(fp,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",Tenv_s,  tol_s,  TLow_s,  THigh_s,  birthrate_s,  deathrate_s,  expressrate_s,  alpha_s,  pnatcutoff_s,  speciessizefactor_s,  mutrate0_s,  mutrate01_s,  mutrate00_s,  x0_s,  b0_s,  fixed_mutrate_s,  mutthreshfac_s,  mutthresh_s,  bindindex_s);
+        fscanf(fp,"%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s %s\n",Tenv_s,  tol_s, birthrate_s,  deathrate_s,  expressrate_s,  alpha_s,  pnatcutoff_s,  speciessizefactor_s,  mutrate0_s,  mutrate01_s,  mutrate00_s,  x0_s,  b0_s,  fixed_mutrate_s,  mutthreshfac_s,  mutthresh_s,  bindindex_s);
         
         myParam.Tenv = atof(Tenv_s);
         myParam.tol = atof(tol_s);
-        myParam.TLow = atof(TLow_s);
-        myParam.THigh = atof(THigh_s);
         myParam.birthrate = atof(birthrate_s);
         myParam.deathrate = atof(deathrate_s);
         myParam.expressrate = atof(expressrate_s);
@@ -842,6 +837,7 @@ void PrintOutput(){
 	fprintf(out1,"\n");
 
         
+	fprintf(out22," %.3E",(double) divisioncycle);
 	fprintf(out22,"%.3E",TIME);
     for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.C[ii]);
 	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %.3E", mean.F[ii]);
@@ -849,6 +845,7 @@ void PrintOutput(){
 	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.pnat[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.pint[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.Gij[ii]);
+	fprintf(out22," %.3E",(double) domi_species/orgcount);
 	fprintf(out22,"\n");
         
 	fprintf(out23," %.3E",(double) divisioncycle);
@@ -859,7 +856,6 @@ void PrintOutput(){
 	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.pnat[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.pint[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out23, " %.3E", var.Gij[ii]);
-	fprintf(out23," %.3E",(double) domi_species/orgcount);
 	fprintf(out23,"\n");
         
        
@@ -884,8 +880,8 @@ void PrintHeaders(FILE *out){
 	fprintf(out, "%*s ",width,"P1nat");
 	fprintf(out, "%*s ",width,"P2nat");
 	fprintf(out, "%*s ",width,"ppi");
-	fprintf(out, "%*s\n",width,"dimer");
-	fprintf(out, "%*s ",width,"Frac");
+	fprintf(out, "%*s ",width,"dimer");
+	fprintf(out, "%*s\n",width,"Frac");
 
 }
 
