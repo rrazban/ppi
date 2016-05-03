@@ -6,9 +6,9 @@
 #include<stdlib.h>
 
 #include"structurelib.h"
-//#include "define.h"
 
 #define NUMCONF         10000
+#define GENES			2
 
 extern int CoordMatrix[NUMCONF][81];
 extern int AllFaces[NUMCONF*6*4][9];

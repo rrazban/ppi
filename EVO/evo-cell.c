@@ -20,7 +20,7 @@
 #include "define.h"
 #include "../LP/gencode.h"
 #include "../LP/latticelib.h"
-#include "bindinglib.h"
+#include "../PPI/bindinglib.h"
 #include "cell.h"
 #include "compare.h"
 

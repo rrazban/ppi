@@ -13,7 +13,7 @@
 
 #include "cell.h"
 #include "../LP/gencode.h"
-#include "bindinglib.h"
+#include "../PPI/bindinglib.h"
 
 int info;
 int aaseq[AASEQLEN], aaseq2[AASEQLEN], aaseq3[AASEQLEN];
@@ -94,17 +94,17 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     char rootdir[200], file[200];
     
-    if (argc != 6) {
-        fprintf(stderr, "Usage ./lma targetname seed sequenceversion maxdivcycle selection\n");
+    if (argc != 5) {
+        fprintf(stderr, "Usage ./EVO seed sequenceversion maxdivcycle selection\n");
         exit(-1);
     }
-    
-    sscanf(argv[1], "%s", myParam->targetname);
-    sscanf(argv[2], "%d", &(myParam->seed));
-    sscanf(argv[3], "%d", &(sequenceversion));
-    sscanf(argv[4], "%d", &(myParam->maxdivcycle));
-    sscanf(argv[5], "%d", &(selection));
    
+    sscanf(argv[1], "%d", &(myParam->seed));
+    sscanf(argv[2], "%d", &(sequenceversion));
+    sscanf(argv[3], "%d", &(myParam->maxdivcycle));
+    sscanf(argv[4], "%d", &(selection));
+	sprintf(myParam->targetname, "seqv%d.s%d.v%d", sequenceversion, selection, myParam->seed); 
+	 
 	homo=0;//hard coded, when =1 homodimer on
 	allow_fold_change = 1;
 	allow_gene_exp = 1;
