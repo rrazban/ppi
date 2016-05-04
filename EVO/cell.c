@@ -62,8 +62,9 @@ char seqbuf[800];
  **********************************************************************************************************/
 void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     int who, ii, jj;
-    int in_tmp1, status; //, in_tmp2;
-    float tmp1; //, tmp2, tmp3;
+    int status; //, in_tmp2;
+	//int in_tmp1;
+  //  float tmp1; //, tmp2, tmp3;
     FILE *fp1;
     int bmode_temp;
     double temp_pint_max;
@@ -204,8 +205,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     ReadAllSurfaces(file);
     sprintf(file, "%s/MJ96/energy.dat", rootdir);
     ReadEnergyMatrix(file);
-    
-    
+   /* 
     sprintf(file, "%s/MJ96/hydrophobicity.dat", rootdir);
     fp1 = fopen(file,"r");
     while (!feof(fp1)){
@@ -213,7 +213,8 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
         Hydrophobicity[in_tmp1] = (double) tmp1;
     }
-    
+	fclose(fp1);
+
     sprintf(file, "%s/MJ96/hydrophobicityYesNo.dat", rootdir);
     fp1 = fopen(file,"r");
     while (!feof(fp1)){
@@ -221,6 +222,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
         HydrophobicityYesNo[in_tmp1] = (double) tmp1;
     }
+	fclose(fp1);
     
     sprintf(file, "%s/MJ96/hydrophobicityYesNo_avil.dat", rootdir);
     fp1 = fopen(file,"r");
@@ -229,7 +231,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
         HydrophobicityYesNo_avil[in_tmp1] = (double) tmp1;
     }
-    
+	fclose(fp1);
     
     sprintf(file, "%s/MJ96/charge.dat", rootdir);
     fp1 = fopen(file,"r");
@@ -238,8 +240,8 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
         //fprintf(stdout,"%d\t%f\n", in_tmp1, tmp1);
         Charge[in_tmp1] = (double) tmp1;
     }
-    
-    
+	fclose(fp1);
+    */
     
     /* read initial gene sequence, Need to correct*/
     if (RUN_BASED_ON_CONFIG==0){
