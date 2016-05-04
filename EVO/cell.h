@@ -84,7 +84,8 @@ typedef struct ORGDB
     //int id;
     char genome[MAXGENES*NUCSEQLEN];
     int structid[MAXGENES], binding[4][9], bmode[MAXPPIS];
-    int count, reporg, genecount;
+	float pint[MAXPPIS+1]; 
+	int count, reporg, genecount;
     float pnat[MAXGENES], hydro[MAXGENES], pint12, pint66;
     //float meanmutrate;
 }

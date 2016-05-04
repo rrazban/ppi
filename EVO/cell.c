@@ -52,8 +52,7 @@ extern int RUN_BASED_ON_CONFIG;
 extern int POST_Proc;
 
 
-extern FILE *error_op;
-extern FILE *it_solver;
+//extern FILE *it_solver;
 
 int eff_hub_ID;
 char seqbuf[800];
@@ -84,7 +83,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     int nucseq_hub_temp[NUCSEQLEN];
     int ii_op;
-    char fopbuf[100];
+  //  char fopbuf[100];
     
     double temp_pint_sum;
     int hub_face_i;
@@ -145,11 +144,9 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
     
     
     sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/%s", myParam->targetname);
-    sprintf(fopbuf,"%s/error_op.dat", rootdir);
-    error_op=fopen(fopbuf,"w");
     
-    sprintf(fopbuf,"%s/it_solver.dat", rootdir);
-    it_solver=fopen(fopbuf,"w");
+//    sprintf(fopbuf,"%s/it_solver.dat", rootdir);
+  //  it_solver=fopen(fopbuf,"w");
     
     
     if (allow_chaps==1){curr_MAXSTATES = curr_MAXGENES*2;}
@@ -751,7 +748,7 @@ int IterativeSolver(int who){
         for(i=0;i<curr_MAXSTATES;i++){
             //printf("ok 11.2 i %d\n",i);
             printf("%E ", eps_array[i]);
-            fprintf(it_solver, "%E ", eps_array[i]);
+//            fprintf(it_solver, "%E ", eps_array[i]);
         }
         printf("\n");
         //printf("ok 11.1 who %d\n",who);
@@ -771,7 +768,6 @@ int IterativeSolver(int who){
         
         //printf("ok 11.3 who %d\n",who);
         
-        fprintf(error_op, "0\n");
         exit(-1);
     }
     

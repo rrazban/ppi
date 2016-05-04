@@ -82,11 +82,10 @@ void PostProcessing();
 void PrintHeaders(FILE *out);
 void PrintHeaders1(FILE *out);
 
-FILE *it_solver;
-FILE *error_op;
+//FILE *it_solver;
 FILE *out1;
 FILE *out22, *out23, *out24;
-
+FILE *out9;
 
 parameter myParam;
 organism mean;
@@ -103,6 +102,9 @@ int mutatororigin[7];
 int orgcount;
 int mutatorcount, count;
 
+
+char oldgenome[MAXGENES*NUCSEQLEN];
+
 char seqbuf[800];
 int sizeRank[MAXORGANISMS] = {0};
 int speciesSizeTotal;
@@ -117,7 +119,7 @@ int start_divisioncycle;
 /***********************************************************************************************************
  **********************************************************************************************************/
 int main(int argc, char *argv[]){
-    
+   	int j; 
     int kk;
     int ii, jj, kia;
     int who, status;
@@ -144,8 +146,11 @@ int main(int argc, char *argv[]){
     divisioncycle=start_divisioncycle;
     ResetOrgDB(&myParam, divisioncycle);
     RankSpeciesSizeDB(sizeRank, nOrgDB);
-    
-    
+   
+	 
+    for(j=0;j<myOrgDB[sizeRank[0]].genecount*NUCSEQLEN;j++) {
+	oldgenome[j]=myOrgDB[sizeRank[0]].genome[j];
+   	} 
     PrepareOutput(); PrintOutput();
 	
 	fprintf(stderr,"Interaction surface\n");
@@ -297,16 +302,12 @@ int main(int argc, char *argv[]){
                     break;
             }
             
-            
-            
-            //output
-            if ((divisioncycle % myParam.printoutcycle == 0)) PrepareOutput(); PrintOutput(); WriteConfig();
-            
+            //output ADJUST
+            PrepareOutput();             
             Flushfiles();
         }//end if time condition
     
-    WriteConfig();
-    fprintf(error_op, "1\n");
+    if (selection==0) WriteConfig();
     Closefiles();
     return 0;
 }
@@ -315,11 +316,21 @@ int main(int argc, char *argv[]){
 /***********************************************************************************************************
  **********************************************************************************************************/
 void PrepareOutput(){
-    int ii, who, m, jj;
+    int ii, who, m, jj, j;
     
     ResetOrgDB(&myParam, divisioncycle);
     RankSpeciesSizeDB(sizeRank, nOrgDB);
-    
+	int genediff=0;
+    for(j=0;j<myOrgDB[sizeRank[0]].genecount*NUCSEQLEN;j++) {
+        // comparing if genome of who matches any genome in the database
+        genediff+=(myOrgDB[sizeRank[0]].genome[j]-oldgenome[j]);
+    }
+    if(!genediff) return;
+
+    for(j=0;j<myOrgDB[sizeRank[0]].genecount*NUCSEQLEN;j++) {
+ 		oldgenome[j] = myOrgDB[sizeRank[0]].genome[j];
+	}
+	
     /* statistics for organisms */
     m=count=mutatorcount=0;
     for(ii=0;ii<curr_MAXGENES;ii++) mutatororigin[ii]=0;
@@ -351,6 +362,8 @@ void PrepareOutput(){
         entropy_sumtot += entropy_sum[ii];
     }
     entropy_sumtot /= (double)curr_MAXGENES;
+
+	PrintOutput(); 
 }
 
 /***********************************************************************************************************
@@ -807,11 +820,11 @@ void ReadConfig(){
 /***********************************************************************************************************
  **********************************************************************************************************/
 void PrintOutput(){
-	int ii, jj;
+	int ii;
+//	int jj;
 
-	RankSpeciesSizeDB(sizeRank, nOrgDB);
         
-	fprintf(out1,"%08d %d",divisioncycle, orgcount);
+/*	fprintf(out1,"%08d %d",divisioncycle, orgcount);
 	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %E", mean.C[ii]);
 	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out1, " %E", mean.F[ii]);
 	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out1, " %.10E", mean.pnat[ii]);
@@ -837,18 +850,18 @@ void PrintOutput(){
 	fprintf(out1,"\n");
 
         
-	fprintf(out22," %.3E",(double) divisioncycle);
+	fprintf(out22," %d", divisioncycle);
 	fprintf(out22,"%.3E",TIME);
     for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.C[ii]);
 	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %.3E", mean.F[ii]);
 	for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out22, " %.3E", mean.nF[ii][jj]);
-	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.pnat[ii]);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", myOrgDB[sizeRank[0]].pnat[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.pint[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.Gij[ii]);
 	fprintf(out22," %.3E",(double) domi_species/orgcount);
 	fprintf(out22,"\n");
         
-	fprintf(out23," %.3E",(double) divisioncycle);
+	fprintf(out23," %d", divisioncycle);
 	fprintf(out23,"%.3E",TIME);
 	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out23, " %.3E", var.C[ii]);
 	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out23, " %.3E", var.F[ii]);
@@ -859,10 +872,18 @@ void PrintOutput(){
 	fprintf(out23,"\n");
         
        
-	fprintf(out24," %.3E",(double) divisioncycle);
+	fprintf(out24," %d", divisioncycle);
 	PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
 	fprintf(out24, " %s", seqbuf);
 	fprintf(out24,"\n");
+*/
+	fprintf(out9,"%5d", divisioncycle);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out9, " %.3E", myOrgDB[sizeRank[0]].pnat[ii]);
+	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out9, " %.3E", myOrgDB[sizeRank[0]].pint[ii]);
+	fprintf(out9," %.2f",(double) domi_species/orgcount);
+	PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
+	fprintf(out9, " %s", seqbuf);
+	fprintf(out9,"\n");
 }
 
 void PrintHeaders(FILE *out){
@@ -906,8 +927,8 @@ void Openfiles(){
         sprintf(filetype_buf,"a");
     }
    
-    sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/%s",myParam.targetname);
-    sprintf(fopbuf,"%s/initial.dat", rootdir);
+    sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/");
+/*    sprintf(fopbuf,"%s/initial.dat", rootdir);
     out1=fopen(fopbuf,filetype_buf);
     PrintInitialCondition(out1,&myParam);
     fclose(out1);
@@ -929,24 +950,28 @@ void Openfiles(){
 	out24=fopen(fopbuf,filetype_buf);
  	fprintf(out24,"Absolute\n");
 	PrintHeaders1(out24);
+*/
+	sprintf(fopbuf,"%s/%s", rootdir, myParam.targetname);
+	out9=fopen(fopbuf,filetype_buf);
 }
 
 /***********************************************************************************************************
  **********************************************************************************************************/
 void Flushfiles(){
-    fflush(out1);
-    fflush(error_op); fflush(stdout);
-	fflush(it_solver);
-	fflush(out22); fflush(out23); fflush(out24);
+//    fflush(out1);
+    fflush(stdout);
+//	fflush(it_solver);
+//	fflush(out22); fflush(out23); fflush(out24);
+	fflush(out9);
 }
 
 /***********************************************************************************************************
  **********************************************************************************************************/
 void Closefiles(){
-    fclose(out1);
-    fclose(error_op);
-	fclose(it_solver);
-	fclose(out22); fclose(out23); fclose(out24);
+  //  fclose(out1);
+//	fclose(it_solver);
+//	fclose(out22); fclose(out23); fclose(out24);
+	fclose(out9);
 }
 
 
@@ -1027,7 +1052,8 @@ int ResetOrgDB(parameter *myParam, int divisioncycle){
             }
             
             for(j=0;j<myOrg[who].genecount-1  ;j++) {
-                myOrgDB[i].bmode[j]=myOrg[who].bmode[j];
+				myOrgDB[i].pint[j]=myOrg[who].pint[j];
+				myOrgDB[i].bmode[j]=myOrg[who].bmode[j];
             }
 
             
@@ -1041,11 +1067,7 @@ int ResetOrgDB(parameter *myParam, int divisioncycle){
             //      myOrgDB[i].meanmutrate += myOrg[who].mutrate; //mod myOrgDBMut
             if(myOrgDB[i].count > domi_species) domi_species = myOrgDB[i].count;
         }
-    } // for(who=0;
-    //  for(i=0;i<nOrgDB;i++) myOrgDB[i].meanmutrate /= myOrgDB[i].count; //mod myOrgDBMut
-    
-    //fprintf(stderr, "ResetOrgDB : %d types of organisms...\n", nOrgDB);
-    
+    }
     return 0;
 }
 
@@ -1310,5 +1332,4 @@ void GetVarOrg(organism *var, int orgcount){
         var->Gij[ii] /= (double)orgcount;
 		var->pint[ii] /= (double)orgcount;
 	}
-
 }
