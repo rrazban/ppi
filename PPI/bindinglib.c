@@ -39,20 +39,21 @@ void ReadAllSurfaces(char *filename)
 //MirrorWall on rotation guy 
 void MirrorWall(int *dest, int *src, int rotate)
 {
-	if (rotate==0){
-		dest[0]=src[6];
-		dest[1]=src[7];
-		dest[2]=src[8];
 
-		dest[3]=src[3];
-		dest[4]=src[4];
- 		dest[5]=src[5];
+//	if (rotate==0){
+	dest[0]=src[6];
+	dest[1]=src[7];
+	dest[2]=src[8];
 
-	 	dest[6]=src[0];
-	 	dest[7]=src[1];
-		dest[8]=src[2];
-	}
-	else if (rotate==1){
+	dest[3]=src[3];
+	dest[4]=src[4];
+ 	dest[5]=src[5];
+
+ 	dest[6]=src[0];
+ 	dest[7]=src[1];
+	dest[8]=src[2];
+//	}
+/*	else if (rotate==1){
 		dest[0]=src[0];
 		dest[1]=src[3];
 		dest[2]=src[6];
@@ -93,7 +94,7 @@ void MirrorWall(int *dest, int *src, int rotate)
 	}
 	else{
 	}
-
+*/
   return;
 }
 
@@ -136,7 +137,7 @@ double GetBindingP(int *seq1, int struct1, int *seq2, int struct2, int *bmode, d
       }
   }
 
-  if(z<0.00001) { fprintf(stderr,"Error!!! Partition Function z = %8.3lf\n", z); exit(1); }
+  //if(z<0.00001) { fprintf(stderr,"Error!!! Partition Function z = %8.3lf\n", z); exit(1); }
 
   return exp(-emin/T)/z;
 }
@@ -170,7 +171,7 @@ double GetBindingP2(int *seq1, int struct1, int *seq2, int struct2, int bmode, d
       }
   }
 
-  if(z<0.00001) { fprintf(stderr,"Error!!! Partition Function z = %8.3lf\n", z); exit(1); }
+//  if(z<0.00001) { fprintf(stderr,"Error!!! Partition Function z = %8.3lf\n", z); exit(1); }
 
   return exp(-emin/T)/z;
 }

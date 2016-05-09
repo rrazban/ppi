@@ -385,7 +385,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                 }
                 if (RANDOME_MODE==0){
                     bmode[ii]= temp_bmode_max;
-           			bmode[ii]=126;			//force it
+           			bmode[ii]=127;			//force it
 			     }
                 else{
                     do{bmode_temp = (int)( ( (double) rand()/RAND_MAX ) * 24 ); } while(  bmode_temp == 24 );
@@ -525,7 +525,7 @@ void SetupParameter(int argc, char *argv[], parameter *myParam, int *orgcount){
                 //printf("ok 2 who %d\n",who);
                 UpdateEquilibriumConstant(myParam, who, 0);
                 //printf("ok 3 who %d\n",who);
-				myParam->b0 = 1.0 * (myParam->deathrate / myOrg[who].birthrate);
+//				myParam->b0 = 1.0 * (myParam->deathrate / myOrg[who].birthrate);
             }
             
             UpdateEquilibriumConstant(myParam, who, 0);

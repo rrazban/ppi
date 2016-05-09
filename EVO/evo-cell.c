@@ -154,6 +154,7 @@ int main(int argc, char *argv[]){
     PrepareOutput(); PrintOutput();
 	
 	fprintf(stderr,"Interaction surface\n");
+	fprintf(stderr, "Bmode: %d\n", myOrgDB[sizeRank[0]].bmode[0]);
     int aaseq_surface_hub[AASURFACELEN], aaseq_surface_partner[AASURFACELEN], s_i, hub_i, par_i;
 	for (ii=0;ii<curr_MAXPPIS; ii++){
 		hub_i=0; par_i=ii+1;
@@ -373,7 +374,7 @@ void WriteConfig(){
 	char rootdir[100];
 	char fopbuf[100]; 
    
-    sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/%s",myParam.targetname);
+    sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/");
     sprintf(fopbuf,"%s/_config.txt", rootdir);
     FILE *fp=fopen(fopbuf, "w");
     
@@ -855,7 +856,7 @@ void PrintOutput(){
     for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.C[ii]);
 	for (ii=0; ii<curr_MAXSTATES; ii++) fprintf(out22, " %.3E", mean.F[ii]);
 	for (ii=0; ii<curr_MAXSTATES; ii++) for (jj=ii; jj<curr_MAXSTATES; jj++) fprintf(out22, " %.3E", mean.nF[ii][jj]);
-	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", myOrgDB[sizeRank[0]].pnat[ii]);
+	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out22, " %.3E", mean.pnat[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.pint[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out22, " %.3E", mean.Gij[ii]);
 	fprintf(out22," %.3E",(double) domi_species/orgcount);
@@ -880,6 +881,8 @@ void PrintOutput(){
 	fprintf(out9,"%5d", divisioncycle);
 	for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out9, " %.3E", myOrgDB[sizeRank[0]].pnat[ii]);
 	for (ii=0; ii<curr_MAXPPIS; ii++) fprintf(out9, " %.3E", myOrgDB[sizeRank[0]].pint[ii]);
+    for (ii=0; ii<curr_MAXGENES; ii++) fprintf(out9, " %.3E", myOrgDB[sizeRank[0]].C[ii]);
+	fprintf(out9," %.3E", myOrgDB[sizeRank[0]].birthrate);
 	fprintf(out9," %.2f",(double) domi_species/orgcount);
 	PrintCharNucCodeSequence(seqbuf, myOrgDB[sizeRank[0]].genome, myOrgDB[sizeRank[0]].genecount*NUCSEQLEN);
 	fprintf(out9, " %s", seqbuf);
@@ -1048,14 +1051,15 @@ int ResetOrgDB(parameter *myParam, int divisioncycle){
             for(j=0;j<myOrg[who].genecount;j++) {
                 myOrgDB[i].structid[j]=myOrg[who].structid[j];
                 myOrgDB[i].pnat[j]=myOrg[who].pnat[j];
-                myOrgDB[i].hydro[j]=myOrg[who].hydro[j];
+       			myOrgDB[i].C[j]=myOrg[who].C[j];
+		        myOrgDB[i].hydro[j]=myOrg[who].hydro[j];
             }
             
             for(j=0;j<myOrg[who].genecount-1  ;j++) {
 				myOrgDB[i].pint[j]=myOrg[who].pint[j];
 				myOrgDB[i].bmode[j]=myOrg[who].bmode[j];
             }
-
+			myOrgDB[i].birthrate=myOrg[who].birthrate;	
             
             myOrgDB[i].reporg = who;
             myOrgDB[i].count = 1;

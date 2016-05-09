@@ -296,6 +296,7 @@ case  'A': { c = 2; break; }
 case  'G': { c = 3; break; }
 }
 Seq[i]=c;
+
 }
 return;
 }
