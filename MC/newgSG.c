@@ -13,7 +13,7 @@
 
 void Openfiles();
 void Printinfo();
-void Printout();
+void Printout(int criteria);
 
 FILE *out0, *out1;
 
@@ -21,22 +21,18 @@ int structid[GENES];
 int nucseq[GENES][NUCSEQLEN];
 int aaseq[GENES][AASEQLEN];
 
+
 int ii, jj;
 
-double pnat[GENES];
-double pint;
+double pnat[GENES], Enat[GENES];
+double pint, Eint;
 
+int pop_size;
 double Tenv = 1.0, targetPint = 1.0;
+int sim_time;
 
 //change seq here
 char tempnucseq[GENES][NUCSEQLEN] = {"UCAGUCUCGCUACCGGUCAUUCGUGCGCGGCUGGAGGAGGAAGAUUCUUCGGACCGUCCAAAGUGGUUGCUUGCCGCUGAU", "CUUAAGCAGGUCCCACCUAGUACGGAGAAAGGCGGGCUCGGUGUAUUAUACCGUAGUGCGAGAUAUAAAUCAUUCAUGGUG"};
-
-//char tempnucseq[GENES][NUCSEQLEN] = {"GCCGCUGCUGCUGCUGCUGCCCGAGGGCGGGCCGCCCGCCGGCGCCGUCGGGCCGCUGCCGCUGCUGCGGCGGCAGCUGCU", "GCCGCGGCUGCUGAACGGGAGGCAGCCGCAGCCGCAGCUGCAGCUGCCGCAGCGGCUGCGGAGGAAGAAGAAGAAGAGGCA"};
-
-//char tempnucseq[GENES][NUCSEQLEN] = {"GCGGCGGCUGCGGCAGCUGCCGCAGCGGCGGCUGCGGCGGCCCGGGCUGCCGCGGCGGCGGCAGCUGCGGCGGCAGCGGCA", "GCCGCAGCUGCAGCUGCCGCUGCUGCGGCAGCCGCGGCUGCCGCCGCGGCGGCUGCCGCCGCAGCAGCGGCCGAGGCAGCU"};
-
-//char tempnucseq[GENES][NUCSEQLEN] = {"GCCGCAGCUGCAGCUGCCGCUCGUGCGGCAGCCGCGGCUGCCCGCGCGGCGGCUGCCGCCGCAGCAGCGGCCGCAGCAGCU", "GCUGCCGCGGCCGCAGAAGCGGCCGCAGCAGCGGCGGCAGCUGCUGCCGCGGCCGCGGCUGCGGCCGCUGCCGAGGCCGCC"};
-
 
 int bmode = 127;
 int best_bmode;
@@ -76,7 +72,7 @@ void Printinfo(){
 	fclose(out0);
 }
 
-void Printout(){
+void Printout(int criteria){
 	fprintf(out1, "%d\t", ii);
 	for (jj=0; jj<GENES; jj++){
 		NucSeqToAASeq(nucseq[jj], NUCSEQLEN, aaseq[jj]);
@@ -92,64 +88,111 @@ void Printout(){
 
 //Generates stable AA sequence of conf specified in argv[1]
 int main(int argc, char *argv[]){
+	int selection=0; //0:fixation 1:Pint/Pnat; 2:Eint/Enat
 	int oldnucseq[GENES][NUCSEQLEN];
-	double oldpint;
-	double oldpnat[GENES];
+	double oldpint, oldEint;
+	double oldpnat[GENES], oldEnat[GENES];
+	double fitness, oldfitness, select, fixation;
 	int status;
 	int accept, accept1;
+	double Tsel=1.0;
 
-	if (argc != 2){
-		printf("seed is missing, bro\n");
+	if (argc != 4){
+		printf("time | pop_size | seed\n");
+		printf("something is missing, bro\n");
 		exit(-1);
 	}
 
 	ReadCommondata();
-	seed = atoi(argv[1]);
+	sim_time = atoi(argv[1]);	//order of mag
+	pop_size = atof(argv[2]);	
+	seed = atoi(argv[3]);
 	srand(seed);
 
 	for (jj=0; jj<GENES; jj++){
 		LetterToNucCodeSeq(tempnucseq[jj], nucseq[jj], NUCSEQLEN);
 		NucSeqToAASeq(nucseq[jj], NUCSEQLEN, aaseq[jj]);
 		oldpnat[jj] = GetSequencePnat(aaseq[jj], Tenv, structid+jj);
+		oldEnat[jj] = SequenceEnergy(aaseq[jj], structid[jj]);
 		CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN);
 	}
 	oldpint = GetBindingP(aaseq[0], structid[0], aaseq[1], structid[1], &(best_bmode), Tenv);
 	printf("best initial bmode: %d", best_bmode);
 	printf("\nvalue: %f", oldpint);
+//	bmode=best_bmode;
 	oldpint = GetBindingP2(aaseq[0], structid[0], aaseq[1], structid[1], bmode, Tenv);
-
+	oldEint = GetBindingEnergy2(aaseq[0], structid[0], aaseq[1], structid[1], bmode);
+	oldfitness = oldpnat[0]*oldpnat[1]*oldpint;
 	Openfiles();
 	if (seed==0) Printinfo();
-	Printout();
+	Printout(0);
 	 // Find stabilizing mutations 
-	for(ii=1; ii<pow(10, 4); ii++){
+	for(ii=1; ii<pow(10, sim_time); ii++){
 		jj=RandomBit();		//randomly choose which protein to mutate
 		PointMutateNucSequence(nucseq[jj], NUCSEQLEN);
 		status = NucSeqToAASeq(nucseq[jj], NUCSEQLEN, aaseq[jj]);
 		if (status==1) {CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}// Reject mutations that introduce a stop codon
 		else{
-			pnat[jj] = GetStructurePnat(aaseq[jj], Tenv, structid[jj]);
-			pint = GetBindingP2(aaseq[0], structid[0], aaseq[1], structid[1], bmode, Tenv);
-
-			if(pnat[jj] >= oldpnat[jj] && pint >= oldpint) {CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout();} // Accept stabilizing mutation
-			else if(pint >= oldpint){
-				accept = AcceptOrRejectAttempt((oldpnat[jj]-pnat[jj])/pnat[jj], Tenv);
-				if (accept==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout();} // Accept stabilizing mutation
+			if (selection==0){
+				pnat[jj] = GetStructurePnat(aaseq[jj], Tenv, structid[jj]);
+				pint = GetBindingP2(aaseq[0], structid[0], aaseq[1], structid[1], bmode, Tenv);
+				
+				fitness = pnat[0]*pnat[1]*pint;
+				select = (fitness - oldfitness)/oldfitness;
+				fixation = (1-exp(-2*select))/(1-exp(-2*pop_size*select));
+				if (fixation > (double)rand()/RAND_MAX){
+					CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldfitness=fitness; Printout(0);
+				}
 				else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
 			}
-			else if(pnat[jj] >= oldpnat[jj]){
-				accept1 = AcceptOrRejectAttempt((oldpint-pint)/pint, Tenv);
-				if (accept1==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout();} // Accept stabilizing mutation
-				else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
+			else if (selection==1){
+				pnat[jj] = GetStructurePnat(aaseq[jj], Tenv, structid[jj]);
+				pint = GetBindingP2(aaseq[0], structid[0], aaseq[1], structid[1], bmode, Tenv);
+
+				if(pnat[jj] >= oldpnat[jj] && pint >= oldpint) {CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout(1);} // Accept stabilizing mutation
+				else if(pint >= oldpint){
+					accept = AcceptOrRejectAttempt((oldpnat[jj]-pnat[jj])/pnat[jj], Tsel);
+					if (accept==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout(2);}
+					else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
+				}
+				else if(pnat[jj] >= oldpnat[jj]){
+					accept1 = AcceptOrRejectAttempt((oldpint-pint)/pint, Tsel);
+					if (accept1==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout(3);}
+					else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
+				}
+				else{
+					accept = AcceptOrRejectAttempt2((oldpnat[jj]-pnat[jj])/pnat[jj], (oldpint-pint)/pint, Tsel);
+				//	accept = AcceptOrRejectAttempt((oldpnat[jj]-pnat[jj])/pnat[jj], Tenv);
+				//	accept1 = AcceptOrRejectAttempt((oldpint-pint)/pint, Tenv);
+					if (accept==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout(4);}
+					else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
+				}		
+			
+		//		if(pint > targetPint) {break;} // Break if target is reached
 			}
 			else{
-				accept = AcceptOrRejectAttempt((oldpnat[jj]-pnat[jj])/pnat[jj], Tenv);
-				accept1 = AcceptOrRejectAttempt((oldpint-pint)/pint, Tenv);
-				if (accept==1 && accept1==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldpnat[jj]=pnat[jj]; oldpint=pint; Printout();} // Accept stabilizing mutation
-				else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
-			}		
+				Enat[jj] = SequenceEnergy(aaseq[jj], structid[jj]);
+				Eint = GetBindingEnergy2(aaseq[0], structid[0], aaseq[1], structid[1], bmode);
+
+				if(Enat[jj] <= oldEnat[jj] && Eint <= oldEint) {CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldEnat[jj]=Enat[jj]; oldEint=Eint; Printout(1);} // Accept stabilizing mutation
+				else if(Eint <= oldEint){
+					accept = AcceptOrRejectAttempt(Enat[jj]-oldEnat[jj], Tenv);
+					if (accept==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldEnat[jj]=Enat[jj]; oldEint=Eint; Printout(2);}
+					else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
+				}
+				else if(Enat[jj] <= oldEnat[jj]){
+					accept1 = AcceptOrRejectAttempt(Eint-oldEint, Tenv);
+					if (accept1==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldEnat[jj]=Enat[jj]; oldEint=Eint; Printout(3);}
+					else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
+				}
+				else{
+					accept = AcceptOrRejectAttempt(Enat[jj]-oldEnat[jj], Tenv);
+					accept1 = AcceptOrRejectAttempt(Eint-oldEint, Tenv);
+					if (accept==1 && accept1==1){CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldEnat[jj]=Enat[jj]; oldEint=Eint; Printout(4);}
+					else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
+				}		
+			}
 		}
-		if(pint > targetPint) {break;} // Break if target is reached
 	}
 	fclose(out1);
 	return 0;

@@ -12,3 +12,4 @@ double CoeffOfVariation(double *data, int col, int index1, int index2);
 int CountContacts(int conf, int residue);
 int RandomBit();
 int AcceptOrRejectAttempt( double diff , double Tsel );
+int AcceptOrRejectAttempt2( double diff1 , double diff2 , double Tsel );

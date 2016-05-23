@@ -129,17 +129,33 @@ int RandomBit()
 /*
  * Decides whether to accept or reject a deleterious mutation based on MC criterion
  */
-int AcceptOrRejectAttempt( double diff , double Tsel )
+int AcceptOrRejectAttempt(double diff , double Tsel )
 {
    double r, crit;
    int accept;
    
    r = (double)rand()/RAND_MAX;
    crit = exp(-( diff )/Tsel);
-   
    //printf("%f\t%f\t%f\t", diff, r, crit);
 
    if (r < crit ) { accept = 1; }
+   else { accept = 0; }
+
+   //printf("%f %f ", crit, r);
+   return accept;
+}
+
+int AcceptOrRejectAttempt2(double diff1, double diff2, double Tsel )
+{
+   double r, crit1, crit2;
+   int accept;
+   
+   r = (double)rand()/RAND_MAX;
+   crit1 = exp(-( diff1)/Tsel);
+   crit2 = exp(-( diff2)/Tsel);
+   //printf("%f\t%f\t%f\t", diff, r, crit);
+
+   if (r < crit1 && r < crit2) { accept = 1; }
    else { accept = 0; }
 
    //printf("%f %f ", crit, r);
