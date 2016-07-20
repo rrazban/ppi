@@ -146,6 +146,7 @@ return values:
 1: stop codon encoutered. STOP codon is -1 in AASeq.
 */
 
+void PrintAASequence(char *buf, int *Seq, int Len);
 void PrintCharNucCodeSequence(char *buf, char *Seq, int Len);
 void PrintNucCodeSequence(char *buf, int *Seq, int Len);
 /*input: int* or char* Seq {0,1,2,3}, output char *buf UCAG */

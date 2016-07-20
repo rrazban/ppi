@@ -301,6 +301,43 @@ Seq[i]=c;
 return;
 }
 
+void PrintAASequence(char *buf, int *Seq, int Len)
+{
+int i;
+char c;
+for(i=0;i<Len;i++)
+{
+c = 'Z';
+switch (Seq[i])
+{
+case  0: { c = 'C'; break; }
+case  1: { c = 'M'; break; }
+case  2: { c = 'F'; break; }
+case  3: { c = 'I'; break; }
+case  4: { c = 'L'; break; }
+case  5: { c = 'V'; break; }
+case  6: { c = 'T'; break; }
+case  7: { c = 'Y'; break; }
+case  8: { c = 'A'; break; }
+case  9: { c = 'G'; break; }
+case 10: { c = 'T'; break; }
+case 11: { c = 'S'; break; }
+case 12: { c = 'N'; break; }
+case 13: { c = 'Q'; break; }
+case 14: { c = 'D'; break; }
+case 15: { c = 'E'; break; }
+case 16: { c = 'H'; break; }
+case 17: { c = 'R'; break; }
+case 18: { c = 'K'; break; }
+case 19: { c = 'P'; break; }
+
+}
+buf[i]=c;
+}
+buf[i]=0;
+return;
+}
+
 
 void PrintNucCodeSequence(char *buf, int *Seq, int Len)
 {
