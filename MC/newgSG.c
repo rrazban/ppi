@@ -10,6 +10,7 @@
 #include "general.h"
 #include "structurelib.h"
 #include "../PPI/bindinglib.h"
+#include "../RNG/generator.c"
 
 void Openfiles();
 void Printinfo();
@@ -112,7 +113,6 @@ int main(int argc, char *argv[]){
 	int oldnucseq[GENES][NUCSEQLEN];
 	double fitness, select;
 	int status;
-	time_t current_time;
 
 	if (argc != 5){
 		printf("time | pop_size | criteria | label\n");
@@ -120,14 +120,12 @@ int main(int argc, char *argv[]){
 		exit(-1);
 	}
 
+	init_KISS();
 	ReadCommondata();
 	sim_time = atoi(argv[1]);	//order of mag
 	pop_size = atof(argv[2]);	
 	criteria = atoi(argv[3]);
 	label = atoi(argv[4]);
-	current_time = time(NULL);
-	fprintf(stderr, ctime(&current_time));
-	srand(current_time);
 
 	for (jj=0; jj<GENES; jj++){
 		LetterToNucCodeSeq(tempnucseq[jj], nucseq[jj], NUCSEQLEN);
@@ -136,8 +134,7 @@ int main(int argc, char *argv[]){
 		CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN);
 	}
 	pint = GetBindingP(aaseq[0], structid[0], aaseq[1], structid[1], &(best_bmode), Tenv);
-	printf("best initial bmode: %d", best_bmode);
-	printf("\nvalue: %f", pint);
+	printf("best initial bmode: %d, %.3E\n", best_bmode, pint);
 	bmode=best_bmode;
 	pint = GetBindingP2(aaseq[0], structid[0], aaseq[1], structid[1], bmode, Tenv);
 	if (criteria==0){oldfitness = pnat[0]*pnat[1];}
@@ -147,7 +144,7 @@ int main(int argc, char *argv[]){
 	Printout(0);
 	 // Find stabilizing mutations 
 	for(ii=1; ii<pow(10, sim_time); ii++){
-		jj=RandomBit();		//randomly choose which protein to mutate
+		jj = JKISS() % 2;		//randomly choose which protein to mutate
 		PointMutateNucSequence(nucseq[jj], NUCSEQLEN);
 		status = NucSeqToAASeq(nucseq[jj], NUCSEQLEN, aaseq[jj]);
 		if (status==1) {CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}// Reject mutations that introduce a stop codon
@@ -159,7 +156,7 @@ int main(int argc, char *argv[]){
 			else {fitness = pnat[0]*pnat[1]*pint;}
 			select = (fitness - oldfitness)/oldfitness;
 			fixation = (1-exp(-2*select))/(1-exp(-2*pop_size*select));
-			if (fixation > (double)rand()/RAND_MAX){
+			if (fixation > (double)JKISS()/4294967296.0){
 				CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldfitness=fitness; Printout();
 			}
 			else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}
