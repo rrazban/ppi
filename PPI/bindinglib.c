@@ -36,11 +36,9 @@ void ReadAllSurfaces(char *filename)
 }
 
 
-//MirrorWall on rotation guy 
-void MirrorWall(int *dest, int *src, int rotate)
+void MirrorWall(int *dest, int *src)
 {
 
-//	if (rotate==0){
 	dest[0]=src[6];
 	dest[1]=src[7];
 	dest[2]=src[8];
@@ -52,64 +50,26 @@ void MirrorWall(int *dest, int *src, int rotate)
  	dest[6]=src[0];
  	dest[7]=src[1];
 	dest[8]=src[2];
-//	}
-/*	else if (rotate==1){
-		dest[0]=src[0];
-		dest[1]=src[3];
-		dest[2]=src[6];
 
-		dest[3]=src[1];
-		dest[4]=src[4];
- 		dest[5]=src[7];
-
-	 	dest[6]=src[2];
-	 	dest[7]=src[5];
-		dest[8]=src[8];
-	}
-	else if (rotate==2){
-		dest[0]=src[2];
-		dest[1]=src[1];
-		dest[2]=src[0];
-
-		dest[3]=src[5];
-		dest[4]=src[4];
- 		dest[5]=src[3];
-
-	 	dest[6]=src[8];
-	 	dest[7]=src[7];
-		dest[8]=src[6];
-	}
-	else if (rotate==3){
-		dest[0]=src[8];
-		dest[1]=src[5];
-		dest[2]=src[2];
-
-		dest[3]=src[7];
-		dest[4]=src[4];
- 		dest[5]=src[1];
-
-	 	dest[6]=src[6];
-	 	dest[7]=src[3];
-		dest[8]=src[0];
-	}
-	else{
-	}
-*/
   return;
 }
 
 
 double GetBindingEnergy(int *seq1, int struct1, int face1, int *seq2, int struct2, int face2, int rotate){
-  int k, surfacetmp[9],surface1[9], surface2[9];
-  double e=0;
+	int k, surfacetmp[9],surface1[9], surface2[9];
+	double e=0;
 
-  for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
+	for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
+	for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+	}
+	else{
+		memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+	}
+	for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
 
-  for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-  MirrorWall(surface2, surfacetmp, rotate);
-  for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
-
-  return e;
+	return e;
 }
 
 // rigid docking!
@@ -127,8 +87,13 @@ double GetBindingP(int *seq1, int struct1, int *seq2, int struct2, int *bmode, d
       {
         e=0;
         for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-   		MirrorWall(surface2, surfacetmp, rotate);
-      for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
+    	if ((face1-face2)%2 == 0){
+			MirrorWall(surface2, surfacetmp);
+		}
+		else{
+			memcpy(surface2, surfacetmp, sizeof(surfacetmp));
+		}
+  for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
         z+=exp(-e/T);
         if (e<emin) {
           emin=e;
@@ -154,7 +119,13 @@ double GetBindingP2(int *seq1, int struct1, int *seq2, int struct2, int bmode, d
   face2=(bmode%24)/4;
   for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
   for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-  MirrorWall(surface2, surfacetmp, rotate);
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+    }
+	else{
+		memcpy(surface2, surfacetmp, sizeof(surfacetmp));
+	}
+
   emin=0.0e0;
   for(k=0; k<9; k++) emin+=EnergyMatrix[surface1[k]][surface2[k]];
 
@@ -165,7 +136,13 @@ double GetBindingP2(int *seq1, int struct1, int *seq2, int struct2, int bmode, d
       {
         e=0.0e0;
         for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-		MirrorWall(surface2, surfacetmp, rotate); 
+		if ((face1-face2)%2 == 0){
+            MirrorWall(surface2, surfacetmp);
+        }
+        else{
+			memcpy(surface2, surfacetmp, sizeof(surfacetmp));
+        }
+
 	    for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
         z+=exp(-e/T);
       }
@@ -187,7 +164,12 @@ void GetDoubleSurfaceAA(int *seq1, int struct1, int *seq2, int struct2, int bmod
     face2=(bmode%24)/4;
     for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
     for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-	MirrorWall(surface2, surfacetmp, rotate);	
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+	}
+	else{
+		memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +188,12 @@ void GetSurfaceAAPositions(int struct1, int struct2, int bmode, int *surface1, i
     face2=(bmode%24)/4;
     for(k=0; k<9; k++) surface1[k] = (int) AllFaces[24*struct1+4*face1+0][k];
     for(k=0; k<9; k++) surfacetmp[k] = (int) AllFaces[24*struct2+4*face2+rotate][k];
-	MirrorWall(surface2, surfacetmp, rotate);
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+	}
+	else{
+		memcpy(surface2, surfacetmp, sizeof(surfacetmp));
+	}
 }
 
 
@@ -225,7 +212,12 @@ double GetBindingEnergy2(int *seq1, int struct1, int *seq2, int struct2, int bmo
     face2=(bmode%24)/4;
     for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
     for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-	MirrorWall(surface2, surfacetmp, rotate);
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+	}
+	else{
+		memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+	}
     emin=0.0e0;
     for(k=0; k<9; k++) emin+=EnergyMatrix[surface1[k]][surface2[k]];
     
@@ -249,7 +241,12 @@ double GetBindingEnergyHydro(int *seq1, int struct1, int *seq2, int struct2, int
     face2=(bmode%24)/4;
     for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
     for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-    MirrorWall(surface2, surfacetmp, rotate);
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+	}
+	else{
+		memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+	}
 
     ConvertAAtoHydro(seq1, surface1_t, AASEQLEN);
     ConvertAAtoHydro(seq2, surface2_t, AASEQLEN);
@@ -281,7 +278,12 @@ double GetBindingEnergyCharge(int *seq1, int struct1, int *seq2, int struct2, in
     face2=(bmode%24)/4;
     for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
     for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-	MirrorWall(surface2, surfacetmp, rotate); 
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+	}
+	else{
+		memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+	}
 
     ConvertAAtoCharge(seq1, surface1_t, AASEQLEN);
     ConvertAAtoCharge(seq2, surface2_t, AASEQLEN);
@@ -356,7 +358,13 @@ double GetBindingP3(int *seq1, int struct1, int surf1, int *seq2, int struct2, i
       {
         e=0;
         for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-	    MirrorWall(surface2, surfacetmp, rotate);
+		if ((face1-face2)%2 == 0){
+			MirrorWall(surface2, surfacetmp);
+		}
+		else{
+			memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+		}
+
 	    for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
         //e*=1.2;
         z+=exp(-e/T);
@@ -386,7 +394,13 @@ double GetBindingK(int *seq1, int struct1, int *seq2, int struct2, double T){
       {
         e=0;
         for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-		MirrorWall(surface2, surfacetmp, rotate); 
+		if ((face1-face2)%2 == 0){
+			MirrorWall(surface2, surfacetmp);
+		}
+		else{
+			memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+		}
+
 	    for(k=0; k<9; k++) e+=EnergyMatrix[surface1[k]][surface2[k]];
         z+=exp(-e/T);
         if (e<emin) emin=e;
@@ -475,7 +489,13 @@ double GetBindingK2(int *seq1, int struct1, int *seq2, int struct2, int bmode, d
     face2=(bmode%24)/4;
     for(k=0; k<9; k++) surface1[k] = seq1[(int) AllFaces[24*struct1+4*face1+0][k]];
     for(k=0; k<9; k++) surfacetmp[k] = seq2[(int) AllFaces[24*struct2+4*face2+rotate][k]];
-	MirrorWall(surface2, surfacetmp, rotate);
+	if ((face1-face2)%2 == 0){
+		MirrorWall(surface2, surfacetmp);
+	}
+	else{
+		memcpy(surface2, surfacetmp, (sizeof(surface2)+1) * sizeof(*surface2));
+	}
+
     emin=0.0e0;
     for(k=0; k<9; k++) emin+=EnergyMatrix[surface1[k]][surface2[k]];
     z =  exp(-emin/T);

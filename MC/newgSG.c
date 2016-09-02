@@ -10,16 +10,15 @@
 #include "general.h"
 #include "structurelib.h"
 #include "../PPI/bindinglib.h"
-#include "../RNG/generator.c"
+#include "../RNG/generator.h"
 
-void Openfiles();
 void Printinfo();
 void Printout();
 
-FILE *out0, *out1;
+FILE *out1;
 
-int structid[GENES];
-int nucseq[GENES][NUCSEQLEN];
+int structid[GENES];// = {6682,6682};
+int nucseq[GENES][NUCSEQLEN]; 
 int aaseq[GENES][AASEQLEN];
 
 
@@ -30,34 +29,23 @@ double pint;
 double oldfitness;
 double fixation;
 
-int pop_size, criteria; //0 for monomers
+int pop_size, mono;
+int homo; 
 
 double Tenv = 1.0;
 int sim_time;
 
-//change seq here
-//char tempnucseq[GENES][NUCSEQLEN] = {"UCCGACAGGGAAAAAAAGAUAAAGGAGGCUUUGGCCGCUGCCUUAAAGGGAGGAAUCACAGCCUAUCGCCUCGGAUGGGAA", "UUCCGCGGUCACCCGCAAUCUAGGGAAGUACAUUCGCUAGAGCUGCUAUUGGGUAGCUAUGCGCUUAAAAGCUACGCCCUC"};
-char tempnucseq[GENES][NUCSEQLEN] = {"UCAGUCUCGCUACCGGUCAUUCGUGCGCGGCUGGAGGAGGAAGAUUCUUCGGACCGUCCAAAGUGGUUGCUUGCCGCUGAU", "CUUAAGCAGGUCCCACCUAGUACGGAGAAAGGCGGGCUCGGUGUAUUAUACCGUAGUGCGAGAUAUAAAUCAUUCAUGGUG"};	//original
-//char tempnucseq[GENES][NUCSEQLEN] = {"UCACGUGUAGACGCCGAAUCCCGGUUAUCGCAAACGAGGUUGAUGAUUAAGAUGGGAUGCGAUAACCUAAAGUUUGUUGAA", "AUCGUAGAGAAACCGUACCCAAUUGACUGCCUCCCAGCGUCGAGAAAGGUCCUCAUAUGUGCGUUCAAAGAGUGCUCGCUU"};	//for nat1 and nat2
-
 char tempaaseq[GENES][AASEQLEN];
 
-int bmode = 127;
+int bmode;
 int best_bmode;
 
 int label;
-
-void Openfiles(){
-	char fopbuf[100];
-	char rootdir[100];
-
-	sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/");
- 
-	sprintf(fopbuf, "%s/v%d.dat", rootdir, label);
-    out1 = fopen(fopbuf, "w");
-}
+char fopbuf[100];
+char rootdir[100] = "/n/regal/shakhnovich_lab/rrazban/";
 
 void Printinfo(){
+	FILE *out0;
 	int surface[GENES][AASURFACELEN];
 	int s_i;
 	char fopbuf[100];
@@ -65,7 +53,7 @@ void Printinfo(){
 
 	sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/");
  
-	sprintf(fopbuf, "%s/info.txt", rootdir);
+	sprintf(fopbuf, "%s/info%d.txt", rootdir, homo);
 	out0 = fopen(fopbuf, "w");
 
 
@@ -77,16 +65,23 @@ void Printinfo(){
 
 	fprintf(out0, "Temp: %.3f (kT)\n", Tenv);
 	fprintf(out0, "N: %d \n", pop_size);
-	fprintf(out0, "criteria: %d \n", criteria);
+	fprintf(out0, "mono: %d \n", mono);
+	fprintf(out0, "homo: %d \n", homo);
 	for (jj=0; jj<GENES; jj++) fprintf(out0, "Conform%d: %d, %.3E\n", jj, structid[jj], pnat[jj]);
 	fprintf(out0, "Bmode: %d, %.3E\n", bmode, pint);
 	GetSurfaceAAPositions(structid[0], structid[1], bmode, surface[0], surface[1]);
+
 	for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out0, " %02d", surface[0][s_i]);
 	fprintf(out0, "\n");
 	for (s_i=0;s_i<AASURFACELEN; s_i++) fprintf(out0, " %02d", surface[1][s_i]);
 
 	fflush(out0);	
 	fclose(out0);
+}
+
+void Openfiles(){
+	sprintf(fopbuf, "%s/v%d.dat", rootdir, label);
+    out1 = fopen(fopbuf, "w");
 }
 
 void Printout(){
@@ -98,7 +93,6 @@ void Printout(){
 	fprintf(out1, " %.3E", oldfitness);	
 	fprintf(out1, " %.3E", fixation);	
 	for (jj=0; jj<GENES; jj++){
-	//	PrintNucCodeSequence(tempnucseq[jj], nucseq[jj], NUCSEQLEN);	
 		fprintf(out1, " ");
 		for (kk=0; kk<NUCSEQLEN; kk++){
 		fprintf(out1, "%d", nucseq[jj][kk]);
@@ -110,53 +104,86 @@ void Printout(){
 
 //Generates stable AA sequence of conf specified in argv[1]
 int main(int argc, char *argv[]){
+	FILE *in0; char buf[100];
 	int oldnucseq[GENES][NUCSEQLEN];
 	double fitness, select;
 	int status;
 
-	if (argc != 5){
-		printf("time | pop_size | criteria | label\n");
+	if (argc != 6){
+		printf("time | pop_size | mono/dimer | homo1/homo2/hetero | label\n");
 		printf("something is missing, bro\n");
 		exit(-1);
 	}
 
 	init_KISS();
+
 	ReadCommondata();
 	sim_time = atoi(argv[1]);	//order of mag
 	pop_size = atof(argv[2]);	
-	criteria = atoi(argv[3]);
-	label = atoi(argv[4]);
+	mono = atoi(argv[3]);	//0 for single monomer (not both)
+	homo = atoi(argv[4]);		//0 or 1 for homo (select for which one is homo)
+	label = atoi(argv[5]);
 
+	printf("Reading initial sequence...\n");
+
+	sprintf(fopbuf, "%s/seq.txt", rootdir);
+
+	if ((in0=fopen(fopbuf,"r")) == NULL) { printf("Can't open %s file\n", fopbuf); exit(-1);}
+	jj = 0;
+    
+	while ((status = fscanf(in0,"%s\n", buf)) != EOF) {
+		if (jj == homo){
+			LetterToNucCodeSeq(buf, nucseq[jj], NUCSEQLEN);
+			LetterToNucCodeSeq(buf, nucseq[1-jj], NUCSEQLEN);
+			break;
+		}
+		else{
+		LetterToNucCodeSeq(buf, nucseq[jj], NUCSEQLEN);
+		}
+		jj++;
+	}
+	fclose(in0);
+	
 	for (jj=0; jj<GENES; jj++){
-		LetterToNucCodeSeq(tempnucseq[jj], nucseq[jj], NUCSEQLEN);
+//		LetterToNucCodeSeq(tempnucseq[jj], nucseq[jj], NUCSEQLEN);
 		NucSeqToAASeq(nucseq[jj], NUCSEQLEN, aaseq[jj]);
-		pnat[jj] = GetSequencePnat(aaseq[jj], Tenv, structid+jj);
+		pnat[jj] = GetSequencePnat(aaseq[jj], Tenv, structid+jj);	//predefined nat
+//		pnat[jj] = GetStructurePnat(aaseq[jj], Tenv, structid[jj]);
 		CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN);
 	}
+
 	pint = GetBindingP(aaseq[0], structid[0], aaseq[1], structid[1], &(best_bmode), Tenv);
+
 	printf("best initial bmode: %d, %.3E\n", best_bmode, pint);
 	bmode=best_bmode;
 	pint = GetBindingP2(aaseq[0], structid[0], aaseq[1], structid[1], bmode, Tenv);
-	if (criteria==0){oldfitness = pnat[0]*pnat[1];}
+	if (mono==0){oldfitness = pnat[0];}
 	else {oldfitness = pnat[0]*pnat[1]*pint;}
-	Openfiles();
 	if (label==0) Printinfo();
-	Printout(0);
-	 // Find stabilizing mutations 
+	Openfiles();
+	Printout();
+
+	// Find stabilizing mutations 
 	for(ii=1; ii<pow(10, sim_time); ii++){
-		jj = JKISS() % 2;		//randomly choose which protein to mutate
+		jj = RandomBit(); 
 		PointMutateNucSequence(nucseq[jj], NUCSEQLEN);
 		status = NucSeqToAASeq(nucseq[jj], NUCSEQLEN, aaseq[jj]);
 		if (status==1) {CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}// Reject mutations that introduce a stop codon
 		else{
 			pnat[jj] = GetStructurePnat(aaseq[jj], Tenv, structid[jj]);
+			if (homo<2){
+				CopySeq(nucseq[1-jj], nucseq[jj], NUCSEQLEN);
+				NucSeqToAASeq(nucseq[1-jj], NUCSEQLEN, aaseq[1-jj]);
+				pnat[1-jj] = GetStructurePnat(aaseq[1-jj], Tenv, structid[1-jj]);
+			}
+
 			pint = GetBindingP2(aaseq[0], structid[0], aaseq[1], structid[1], bmode, Tenv);
 			
-			if (criteria==0){fitness = pnat[0]*pnat[1];}
+			if (mono==0){fitness = pnat[0];}
 			else {fitness = pnat[0]*pnat[1]*pint;}
 			select = (fitness - oldfitness)/oldfitness;
 			fixation = (1-exp(-2*select))/(1-exp(-2*pop_size*select));
-			if (fixation > (double)JKISS()/4294967296.0){
+			if (fixation > (double)JKISS()/THE_MAX){
 				CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldfitness=fitness; Printout();
 			}
 			else{CopySeq(nucseq[jj], oldnucseq[jj], NUCSEQLEN);}

@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 
   ReadCommondata();
   char aaseqL[100], nucseqL[100];
-  int aaseqN[100], nucseqNA[100],nucseqNC[100], confC, ii, status;
+  int aanucseqNA[100],nucseqNC[100], confC, ii, status;
   double Tenv = 1.0, targetPnat = 0.97, pnatA, pnatC;
 
   char fname[100];

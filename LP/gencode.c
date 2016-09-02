@@ -10,6 +10,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include"gencode.h"
+#include"../RNG/generator.h"
 // U C A G -> 0 1 2 3
 
 
@@ -189,7 +190,7 @@ void CreateRandomNucSequence2(int *Seq, int Len)
   for(i=0;i<Len/3;i++) {
     do {
       for(j=0;j<3;j++){
-        do{aa = (int)(((double)rand()/RAND_MAX) * 4 );} while(aa==4);
+        do{aa = (int)(((double)JKISS()/THE_MAX) * 4 );} while(aa==4);
         Seq[3*i+j]=aa;
       }
       a1 = Seq[3*i];
@@ -209,7 +210,7 @@ void CreateRandomNucSequence(int *Seq, int Len)
 int i,j;
 for(i=0;i<Len;i++) {
 do{
-j = (int)( ((double)rand()/RAND_MAX) * 4 );
+j = (int)( ((double)JKISS()/THE_MAX) * 4 );
 } while(j==4);
 Seq[i]=j;
 }
@@ -224,13 +225,13 @@ int AAS1[10000], AAS2[10000];
 NucSeqToAASeq(Seq, Len, AAS1);
 
 do{
-j = (int)( ((double)rand()/RAND_MAX) * Len );
+j = (int)( ((double)JKISS()/THE_MAX) * Len );
 } while(j==Len);
 
 do
   {
   do{
-  i = (int)( ((double)rand()/RAND_MAX) * 4 );
+  i = (int)( ((double)JKISS()/THE_MAX) * 4 );
   } while(i==4);
   }
 while(Seq[j]==i);
@@ -257,13 +258,13 @@ int AAS1[10000], AAS2[10000];
 CharNucSeqToAASeq(Seq, Len, AAS1);
 
 do{
-j = (int)( ((double)rand()/RAND_MAX) * Len );
+j = (int)( ((double)JKISS()/THE_MAX) * Len );
 } while(j==Len);
 
 do
   {
     do{
-      i = (int)( ((double)rand()/RAND_MAX) * 4 );
+      i = (int)( ((double)JKISS()/THE_MAX) * 4 );
       } while(i==4);
   }
 while(Seq[j]==i);

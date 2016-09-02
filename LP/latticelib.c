@@ -9,6 +9,7 @@
 #include<string.h>
 
 #include"latticelib.h"
+#include"../RNG/generator.h"
 
 // global variables
 int ContactMatrixLen[NUMCONF]; // actually, useless
@@ -208,7 +209,7 @@ int GetTwoStructureIntQScore(int StrID1, int StrID2)
 
 /*
  void CreateRandomSequence(int *Seq, int Len)
- Creates a random (amino acid) sequence Seq of length Len,
+ Creates a JKISSom (amino acid) sequence Seq of length Len,
  each element of Seq is between 0 and ALPHABET-1 (inclusive)
  */
 void CreateRandomSequence(int *Seq, int Len)
@@ -217,7 +218,7 @@ void CreateRandomSequence(int *Seq, int Len)
     for(i=0;i<Len;i++)
     {
         do{
-            j = (int)( ((double)rand()/RAND_MAX) * ALPHABET );
+            j = (int)( ((double)JKISS()/THE_MAX) * ALPHABET );
         } while(j==ALPHABET);
         Seq[i] = j;
     }
@@ -376,13 +377,13 @@ void PointMutateAASequence(int *Seq, int Len)
     //int k;
     
     do{
-        j = (int)( ((double)rand()/RAND_MAX) * Len );
+        j = (int)( ((double)JKISS()/THE_MAX) * Len );
     } while(j==Len);
     
     do
     {
         do{
-            i = (int)( ((double)rand()/RAND_MAX) * ALPHABET );
+            i = (int)( ((double)JKISS()/THE_MAX) * ALPHABET );
         } while(i==ALPHABET);
     }
     while(Seq[j]==i);
@@ -401,11 +402,11 @@ void SwapTwoResidues(int *Seq, int Len)
     int i,j,k;
     
     do{
-        i = (int)( ((double)rand()/RAND_MAX) * Len );
+        i = (int)( ((double)JKISS()/THE_MAX) * Len );
     } while(i==Len);
     
     do{
-        j = (int)( ((double)rand()/RAND_MAX) * Len );
+        j = (int)( ((double)JKISS()/THE_MAX) * Len );
     } while((j==Len)||(j==i));
     
     k = Seq[i]; Seq[i]=Seq[j]; Seq[j]=k;
@@ -460,7 +461,7 @@ double MutateAASeqForMaxPnat(int *aaseq, double Tenv, double Tsel)
             //        if (fabs(e1-targetpnat)<0.01) { attempt=MCATTEMPT+1;}
         }
         else { // Pnat decreased - run MC game
-            r = (double)rand()/RAND_MAX;
+            r = (double)JKISS()/THE_MAX;
             if ( r < exp((e1-e0)/Tsel) ) //accept
             { e0 = e1;  CopySeq(aaseq2, aaseq3, AASEQLEN);
                 //        if (struct1!=struct2) { struct1=struct2; fprintf(globaloutfile,"%d %d\n",attempt, attempt-changetime);  changetime = attempt; }
@@ -514,7 +515,7 @@ double SwapResiduesForMinE(int *aaseq,  double Tsel)
             e0 = e1; CopySeq(aaseq2, aaseq3, AASEQLEN);
         }
         else { // energy inreased - run MC game
-            r = (double)rand()/RAND_MAX;
+            r = (double)JKISS()/THE_MAX;
             if ( r < exp(-(e1-e0)/Tsel) ) //accept
             { e0 = e1;  CopySeq(aaseq2, aaseq3, AASEQLEN);  }
         }

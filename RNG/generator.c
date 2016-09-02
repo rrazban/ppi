@@ -1,11 +1,16 @@
 //generates a more random pseudo-random number
 //from D Jones 2010 web
 //JKISS generator
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+
+#include "generator.h"
 
 static unsigned int x, y, z, c; /* Seed variables */
-unsigned int devrand(void);
-void init_KISS();
-unsigned int JKISS();
 
 unsigned int devrand(void) 
 {
