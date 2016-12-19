@@ -250,7 +250,7 @@ for(ii=0;ii<3;ii++)
 return;
 }
 
-void MakeContactMatrix()
+void MakeContactMatrix()		//unecessary, can have it read in. in general it seems that this file was created to not have to read in contact matrix
 {
   int kk, ii, jj, mm, c=0, cont=0;
   int tmp1[3], tmp2[3];

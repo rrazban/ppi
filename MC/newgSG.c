@@ -28,9 +28,11 @@ double pnat[GENES];
 double pint;
 double oldfitness;
 double fixation;
+double selection;
 
 int pop_size, mono;
 int homo; 
+int bmode_label;
 
 double Tenv = 1.0;
 int sim_time;
@@ -44,6 +46,8 @@ int label;
 char fopbuf[100];
 char rootdir[100] = "/n/regal/shakhnovich_lab/rrazban/";
 
+char homo_list[3][6]={"homo1", "homo2", "hetero"};
+
 void Printinfo(){
 	FILE *out0;
 	int surface[GENES][AASURFACELEN];
@@ -53,7 +57,7 @@ void Printinfo(){
 
 	sprintf(rootdir,"/n/regal/shakhnovich_lab/rrazban/");
  
-	sprintf(fopbuf, "%s/info%d.txt", rootdir, homo);
+	sprintf(fopbuf, "%s/bmode%d/%s/info.txt", rootdir, bmode_label, homo_list[homo]);
 	out0 = fopen(fopbuf, "w");
 
 
@@ -80,7 +84,7 @@ void Printinfo(){
 }
 
 void Openfiles(){
-	sprintf(fopbuf, "%s/v%d.dat", rootdir, label);
+	sprintf(fopbuf, "%s/bmode%d/%s/dats/v%d.dat", rootdir, bmode_label, homo_list[homo], label);
     out1 = fopen(fopbuf, "w");
 }
 
@@ -106,11 +110,11 @@ void Printout(){
 int main(int argc, char *argv[]){
 	FILE *in0; char buf[100];
 	int oldnucseq[GENES][NUCSEQLEN];
-	double fitness, select;
+	double fitness; 
 	int status;
 
-	if (argc != 6){
-		printf("time | pop_size | mono/dimer | homo1/homo2/hetero | label\n");
+	if (argc != 7){
+		printf("time | pop_size | mono/dimer | homo1/homo2/hetero | label | bmode_label\n");
 		printf("something is missing, bro\n");
 		exit(-1);
 	}
@@ -121,12 +125,13 @@ int main(int argc, char *argv[]){
 	sim_time = atoi(argv[1]);	//order of mag
 	pop_size = atof(argv[2]);	
 	mono = atoi(argv[3]);	//0 for single monomer (not both)
-	homo = atoi(argv[4]);		//0 or 1 for homo (select for which one is homo)
+	homo = atoi(argv[4]);		//0 or 1 for homo (selection for which one is homo)
 	label = atoi(argv[5]);
+	bmode_label = atoi(argv[6]);
 
 	printf("Reading initial sequence...\n");
 
-	sprintf(fopbuf, "%s/seq.txt", rootdir);
+	sprintf(fopbuf, "%s/bmode%d/seq.txt", rootdir, bmode_label);
 
 	if ((in0=fopen(fopbuf,"r")) == NULL) { printf("Can't open %s file\n", fopbuf); exit(-1);}
 	jj = 0;
@@ -181,8 +186,8 @@ int main(int argc, char *argv[]){
 			
 			if (mono==0){fitness = pnat[0];}
 			else {fitness = pnat[0]*pnat[1]*pint;}
-			select = (fitness - oldfitness)/oldfitness;
-			fixation = (1-exp(-2*select))/(1-exp(-2*pop_size*select));
+			selection = (fitness - oldfitness)/oldfitness;
+			fixation = (1-exp(-2*selection))/(1-exp(-2*pop_size*selection));
 			if (fixation > (double)JKISS()/THE_MAX){
 				CopySeq(oldnucseq[jj], nucseq[jj], NUCSEQLEN); oldfitness=fitness; Printout();
 			}
